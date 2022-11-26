@@ -265,7 +265,7 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	public void setLanguage(int language) {
-		lang = language;
+		currentLayout = lang = language;
 	}
 	
 	// почти то же что и очистка но будет возвращать язык и раскладку на дефолтные
