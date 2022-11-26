@@ -19,6 +19,9 @@ public interface KeyboardConstants {
 	
 	public static final boolean DEFAULT_BUTTONS = true;
 	public static final boolean DEFAULT_TEXT_SHADOWS = true;
+	public static final boolean DEFAULT_ROUND_BUTTONS = true;
+	
+	public static final int DEFAULT_BUTTON_PADDING = 2;
 	
 	// языки
 	

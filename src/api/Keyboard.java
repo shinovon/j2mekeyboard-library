@@ -58,7 +58,6 @@ public class Keyboard implements KeyboardConstants {
 	private int keyEndY;
 	private int keyMarginY;
 	private int keyHeight;
-	private int keyButtonPadding = 2;
 	
 	private int keyboardHeight;
 	private int Y;
@@ -104,6 +103,8 @@ public class Keyboard implements KeyboardConstants {
 	private int keyButtonOutlineColor = DEFAULT_BUTTON_OUTLINE_COLOR;
 	private boolean drawButtons = DEFAULT_BUTTONS;
 	private boolean drawShadows = DEFAULT_TEXT_SHADOWS;
+	private boolean roundButtons = DEFAULT_ROUND_BUTTONS;
+	private int keyButtonPadding = DEFAULT_BUTTON_PADDING;
 	
 	private Keyboard(int mode, boolean multiLine, int screenWidth, int screenHeight) {
 		this.screenWidth = screenWidth;
@@ -329,11 +330,14 @@ public class Keyboard implements KeyboardConstants {
 		h -= keyButtonPadding*2;
 		g.fillRect(x, y, w, h);
 		g.setColor(keyButtonOutlineColor);
-		//g.drawRect(x, y, w, h);
-		g.drawLine(x, y, x, y);
-		g.drawLine(x+w-1, y, x+w-1, y);
-		g.drawLine(x, y+h-1, x, y+h-1);
-		g.drawLine(x+w-1, y+h-1, x+w-1, y+h-1);
+		if(keyButtonPadding == 0) {
+			g.drawRect(x, y, w, h);
+		} else if(roundButtons) {
+			g.drawLine(x, y, x, y);
+			g.drawLine(x+w-1, y, x+w-1, y);
+			g.drawLine(x, y+h-1, x, y+h-1);
+			g.drawLine(x+w-1, y+h-1, x+w-1, y+h-1);
+		} 
 	}
 
 	private int drawKey(Graphics g, int row, int column, int x, int y, int mode) {
@@ -369,7 +373,7 @@ public class Keyboard implements KeyboardConstants {
 			break;
 		case RETURN:
 			b = true;
-			s = "OK";
+			s = multiLine ? "->" : "OK";
 			break;
 		case CANCEL:
 			b = true;
@@ -622,6 +626,14 @@ public class Keyboard implements KeyboardConstants {
 	
 	public void setTextShadows(boolean enabled) {
 		this.drawShadows = enabled;
+	}
+	
+	public void setRoundButtons(boolean enabled) {
+		this.roundButtons = enabled;
+	}
+	
+	public void setButtonPadding(int padding) {
+		this.keyButtonPadding = padding;
 	}
 	
 	private void requestRepaint() {
