@@ -533,6 +533,7 @@ public class Keyboard implements KeyboardConstants {
 			lang = 0;
 		}
 		currentLayout = lang;
+		if(listener != null) listener.langChanged();
 		requestRepaint();
 	}
 	
@@ -545,8 +546,10 @@ public class Keyboard implements KeyboardConstants {
 	private void enter() {
 		if(multiLine) {
 			type('\n');
+			if(listener != null) listener.newLine();
 		} else {
 			text = "";
+			if(listener != null) listener.done();
 			requestRepaint();
 		}
 	}
