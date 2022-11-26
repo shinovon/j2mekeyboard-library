@@ -1,0 +1,13 @@
+*.class
+.mtj.tmp
+*.jar
+*.zip
+bin
+deployed
+.mtj
+.project
+build.properties
+Application Descriptor
+.settings
+test
+.classpath
