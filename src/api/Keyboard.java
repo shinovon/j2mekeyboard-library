@@ -5,9 +5,6 @@ import javax.microedition.lcdui.Graphics;
 
 public class Keyboard implements KeyboardConstants {
 	
-	private static final char BSL = '\\';
-	private static final char QOT = '\'';
-
 	private static final int SHIFT = 1;
 	private static final int BACKSPACE = 2;
 	private static final int SMALL_SHIFT = 3;
@@ -31,7 +28,7 @@ public class Keyboard implements KeyboardConstants {
 		}, /*spec 1*/ {
 			{'1','2','3','4','5','6','7','8','9','0'},
 			{'@','#','$','%','&','*','-','+','(',')'},
-			{SHIFT,'!','"',QOT,':',';',BSL,'?',BACKSPACE},
+			{SHIFT,'!','"','\'',':',';','\\','?',BACKSPACE},
 			{MODE,LANG,',',SPACE,'/','.',RETURN}
 		}, /*spec 2*/ {
 			{'1','2','3','4','5','6','7','8','9','0'},
@@ -57,10 +54,11 @@ public class Keyboard implements KeyboardConstants {
 	private int[][][] positions;
 	private int[][] offsets;
 
-	private static int keyStartY;
-	private static int keyEndY;
-	private static int keyMarginY;
-	private static int keyHeight;
+	private int keyStartY;
+	private int keyEndY;
+	private int keyMarginY;
+	private int keyHeight;
+	private int keyButtonPadding = 2;
 	
 	private int keyboardHeight;
 	private int Y;
@@ -155,19 +153,13 @@ public class Keyboard implements KeyboardConstants {
 	private boolean layout() {
 		keyStartY = 2;
 		keyEndY = 2;
-		int h = (int) (0.1D * screenHeight);
-		if(screenHeight == 320) {
-			h = 32;
-		}
-		if(screenHeight == 400) {
-			h = 40;
-		}
+		int h = (int) (screenHeight / 10D);
 		if(screenHeight == 640) {
 			h = 58;
 		}
 		keyHeight = h;
 		//keyMarginY = 2;
-		int w1 = (int) (screenWidth/10D);
+		int w1 = (int) (screenWidth / 10D);
 		widths = new int[layouts.length][4][];
 		positions = new int[layouts.length][4][];
 		offsets = new int[layouts.length][4];
@@ -229,7 +221,7 @@ public class Keyboard implements KeyboardConstants {
 				offsets[l][row] = (screenWidth - x) >> 1;
 			}
 		}
-		keyboardHeight = keyStartY + keyEndY + (keyHeight+keyMarginY)*4;
+		keyboardHeight = keyStartY + keyEndY + (keyHeight + keyMarginY) * 4;
 		keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 		return true;
 	}
@@ -257,11 +249,11 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	public void removeChar(int index) {
-		text = text.substring(0, index) + text.substring(index+1);
+		text = text.substring(0, index) + text.substring(index + 1);
 	}
 	
 	public void remove(int start, int end) {
-		text = text.substring(0, start) + text.substring(end+1);
+		text = text.substring(0, start) + text.substring(end + 1);
 	}
 	
 	public void clear() {
@@ -331,19 +323,17 @@ public class Keyboard implements KeyboardConstants {
 		if(!drawButtons) return;
 		int h = keyHeight;
 		g.setColor(pressed && px > x && px < x + w && py-Y > y && py-Y < y+h ? keyButtonHoverColor : keyButtonColor);
-		//x += 1;
-		//y += 1;
-		//w -= 2;
-		//h -= 2;
+		x += keyButtonPadding;
+		y += keyButtonPadding;
+		w -= keyButtonPadding*2;
+		h -= keyButtonPadding*2;
 		g.fillRect(x, y, w, h);
 		g.setColor(keyButtonOutlineColor);
-		g.drawRect(x, y, w, h);
-	/*
-		g.drawLine(x+1, y+1, x+1, y+1);
-		g.drawLine(x+w-2, y+1, x+w-2, y+1);
-		g.drawLine(x+1, y+h-1, x+1, y+h-1);
-		g.drawLine(x+w-2, y+h-1, x+w-2, y+h-1);
-	*/
+		//g.drawRect(x, y, w, h);
+		g.drawLine(x, y, x, y);
+		g.drawLine(x+w-1, y, x+w-1, y);
+		g.drawLine(x, y+h-1, x, y+h-1);
+		g.drawLine(x+w-1, y+h-1, x+w-1, y+h-1);
 	}
 
 	private int drawKey(Graphics g, int row, int column, int x, int y, int mode) {
@@ -468,7 +458,7 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	private void handleTap(int x, int y, boolean repeated) {
-		int row = div(y - 4, keyHeight+keyMarginY);
+		int row = div(y - keyStartY, keyHeight + keyMarginY);
 		if(row == 4) row = 3;
 		if(repeated && row != 2) return;
 		if(row >= 0 && row <= 3) {
