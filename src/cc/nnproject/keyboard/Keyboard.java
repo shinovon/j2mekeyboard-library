@@ -621,7 +621,7 @@ public class Keyboard implements KeyboardConstants {
 		if(layoutTypes[currentLayout] == 0) {
 			currentLayout = specs[spec = 0];
 		} else if(layoutTypes[currentLayout] == 1) {
-			currentLayout = lang;
+			currentLayout = langsIdx[lang];
 		}
 		requestRepaint();
 	}
