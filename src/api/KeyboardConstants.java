@@ -5,8 +5,14 @@ public interface KeyboardConstants {
 	// режимы клавы
 	
 	public static final int MODE_DEFAULT = 0;
-	// номер телефона, пинкод и т.п
-	//public static final int MODE_NUMERIC = 1; // TODO
+	// урл
+	public static final int MODE_URL = 1;
+	// только цифры
+	public static final int MODE_NUMERIC = 2;
+	// 
+	public static final int MODE_DECIMAL = 3;
+	// номер телефона
+	public static final int MODE_PHONE_NUMBER = 4;
 
 	// цвета
 	

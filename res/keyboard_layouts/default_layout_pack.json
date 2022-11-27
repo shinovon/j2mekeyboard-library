@@ -1,0 +1,83 @@
+{
+	"pack_name": "Default",
+	"keyboards": {
+		"default": {
+			"supported_languages": ["en", "ru", "es"],
+			"layouts": [
+				{
+					"res": "default_qwerty_en",
+					"type": "qwerty",
+					"lang": "en"
+				},
+				{
+					"res": "default_qwerty_ru",
+					"type": "qwerty",
+					"lang": "ru"
+				},
+				{
+					"res": "default_qwerty_es",
+					"type": "qwerty",
+					"lang": "es"
+				},
+				{
+					"res": "default_spec_1",
+					"type": "special",
+					"tab": 1
+				},
+				{
+					"res": "default_spec_2",
+					"type": "special",
+					"tab": 2
+				}
+			]
+		},
+		"numeric": {
+			"supported_languages": [],
+			"layouts": [
+				{"res": "numeric_1"}
+			]
+		},
+		"phone_number": {
+			"supported_languages": [],
+			"layouts": [
+				{"res": "phone_number_1"}
+			]
+		},
+		"decimal": {
+			"supported_languages": [],
+			"layouts": [
+				{"res": "decimal_1"}
+			]
+		},
+		"url": {
+			"supported_languages": ["en", "ru", "es"],
+			"layouts": [
+				{
+					"res": "default_qwerty_en",
+					"type": "qwerty",
+					"lang": "en"
+				},
+				{
+					"res": "default_qwerty_ru",
+					"type": "qwerty",
+					"lang": "ru"
+				},
+				{
+					"res": "default_qwerty_es",
+					"type": "qwerty",
+					"lang": "es"
+				},
+				{
+					"res": "default_spec_1",
+					"type": "special",
+					"tab": 1
+				},
+				{
+					"res": "default_spec_2",
+					"type": "special",
+					"tab": 2
+				}
+			]
+		}
+	}
+}
