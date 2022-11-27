@@ -355,12 +355,10 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	public void removeChar(int index) {
-		// TODO: проверить как это работает
 		text = text.substring(0, index) + text.substring(index + 1);
 	}
 	
 	public void remove(int start, int end) {
-		// TODO: проверить как это работает
 		text = text.substring(0, start) + text.substring(end + 1);
 	}
 	
@@ -747,6 +745,8 @@ public class Keyboard implements KeyboardConstants {
 		this.keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 	}
 	
+	// пустой массив чтобы выбрать все доступные языки
+	// но возможно тогда юзверю придется много раз нажимать на кнопку языка чтобы найти нужный
 	public void setLanguages(String[] languages) {
 		if(languages.length == 0) {
 			langs = supportedLanguages;
@@ -762,6 +762,10 @@ public class Keyboard implements KeyboardConstants {
 				}
 			}
 			int l = v.size();
+			if(l < languages.length) {
+				// предупреждение в логи о том что некоторые языки не были добавлены
+				System.out.println("Some languages are not supported by current layout pack and skipped!");
+			}
 			langs = new String[l];
 			langsIdx = new int[l];
 			for(int i = 0; i < l; i++) {
