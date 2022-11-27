@@ -617,6 +617,9 @@ public class Keyboard implements KeyboardConstants {
 		this.keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 	}
 	
+	public void setLanguages(String[] languages) {
+	}
+	
 	private void requestRepaint() {
 		if(listener != null) listener.requestRepaint();
 	}
