@@ -25,28 +25,7 @@ public class Keyboard implements KeyboardConstants {
 	private static final int RETURN = '\n';
 	private static final int SPACE = ' ';
 	
-	private int[][][] layouts = {/*en*/ { // TODO: переписать под жсон
-			{'q','w','e','r','t','y','u','i','o','p'},
-			{'a','s','d','f','g','h','j','k','l'},
-			{SHIFT,'z','x','c','v','b','n','m',BACKSPACE},
-			{MODE,LANG,',',SPACE,'/','.',RETURN}
-		}, /*ru*/ {
-			{'й','ц','у','к','е','н','г','ш','щ','з','х'}, 
-			{'ф','ы','в','а','п','р','о','л','д','ж','э'}, 
-			{SHIFT,'я','ч','с','м','и','т','ь','б','ю',BACKSPACE},
-			{MODE,LANG,',',SPACE,'/','.',RETURN}
-		}, /*spec 1*/ {
-			{'1','2','3','4','5','6','7','8','9','0'},
-			{'@','#','$','%','&','*','-','+','(',')'},
-			{SHIFT,'!','"','\'',':',';','\\','?',BACKSPACE},
-			{MODE,LANG,',',SPACE,'/','.',RETURN}
-		}, /*spec 2*/ {
-			{'1','2','3','4','5','6','7','8','9','0'},
-			{'~','`','|','^','[',']','_','=','{','}'},
-			{SHIFT,'<' , '>' , 0 , 0 , 0 , 0 , 0,BACKSPACE},
-			{MODE,LANG,',',SPACE,'/','.',RETURN}
-		},
-	};
+	private int[][][] layouts;
 	
 	private String[] supportedLanguages;
 	private int[] supportedLanguagesIdx;
@@ -764,7 +743,7 @@ public class Keyboard implements KeyboardConstants {
 			int l = v.size();
 			if(l < languages.length) {
 				// предупреждение в логи о том что некоторые языки не были добавлены
-				System.out.println("Some languages are not supported by current layout pack and skipped!");
+				System.out.println("Some selected languages are not supported by current layout pack and skipped!");
 			}
 			langs = new String[l];
 			langsIdx = new int[l];
