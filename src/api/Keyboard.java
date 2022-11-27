@@ -323,7 +323,7 @@ public class Keyboard implements KeyboardConstants {
 			int fz = layouts[l][2].length-2;
 			int fw = ((int) (screenWidth - dw * fz)) >> 1;
 			for(int row = 0; row < 4; row++) {
-				if(row == 3) {
+				if(row == 3 && layouts[l][3].length < layouts[l][2].length) {
 					w = w1;
 					fw = ((int) (screenWidth - w * 7)) >> 1;
 				}
