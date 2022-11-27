@@ -6,13 +6,13 @@ import javax.microedition.lcdui.Graphics;
 public class Keyboard implements KeyboardConstants {
 	
 	private static final int SHIFT = 1;
+	private static final int LANG = 2;
+	private static final int MODE = 3;
 	private static final int BACKSPACE = 8;
-	private static final int LANG = 5;
-	private static final int MODE = 6;
 	private static final int RETURN = '\n';
 	private static final int SPACE = ' ';
 	
-	private static final int[][][] layouts = {/*en*/ {
+	private static final int[][][] layouts = {/*en*/ { // TODO: переписать под жсон
 			{'q','w','e','r','t','y','u','i','o','p'},
 			{'a','s','d','f','g','h','j','k','l'},
 			{SHIFT,'z','x','c','v','b','n','m',BACKSPACE},
@@ -229,10 +229,12 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	public void removeChar(int index) {
+		// TODO: проверить как это работает
 		text = text.substring(0, index) + text.substring(index + 1);
 	}
 	
 	public void remove(int start, int end) {
+		// TODO: проверить как это работает
 		text = text.substring(0, start) + text.substring(end + 1);
 	}
 	
@@ -287,11 +289,11 @@ public class Keyboard implements KeyboardConstants {
 		g.setColor(bgColor);
 		g.fillRect(0, 0, screenWidth, keyboardHeight);
 		int y = keyStartY;
-		int mode = currentLayout;
-		for(int row = 0; row < layouts[mode].length; row++) {
-			int x = offsets[mode][row];
-			for(int i = 0; i < layouts[mode][row].length; i++) {
-				x += drawKey(g, row, i, x, y, mode);
+		int l = currentLayout;
+		for(int row = 0; row < layouts[l].length; row++) {
+			int x = offsets[l][row];
+			for(int i = 0; i < layouts[l][row].length; i++) {
+				x += drawKey(g, row, i, x, y, l);
 			}
 			y += keyHeight + keyMarginY;
 		}
@@ -320,10 +322,10 @@ public class Keyboard implements KeyboardConstants {
 		} 
 	}
 
-	private int drawKey(Graphics g, int row, int column, int x, int y, int mode) {
-		int w = widths[mode][row][column];
+	private int drawKey(Graphics g, int row, int column, int x, int y, int l) {
+		int w = widths[l][row][column];
 		drawKeyButton(g, x, y, w);
-		int key = layouts[mode][row][column];
+		int key = layouts[l][row][column];
 		String s = null;
 		char c = 0;
 		boolean b = false;
@@ -333,7 +335,7 @@ public class Keyboard implements KeyboardConstants {
 			// в спец.символах это должно быть табами
 			// если ширина кнопки такая же как у обычных клавиш, то отображать ^ вместо шифта
 			// и вообще надо приделать картинки
-			s = layoutsMode[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[mode][0][0] ? "^" : "shift";
+			s = layoutsMode[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[l][0][0] ? "^" : "shift";
 			break;
 		case BACKSPACE:
 			b = true;
@@ -375,7 +377,7 @@ public class Keyboard implements KeyboardConstants {
 			g.setColor(textColor);
 			g.drawString(s, x, y, 0);
 		} else if(key != 0) {
-			if(shifted && mode < langs.length)
+			if(shifted && l < langs.length)
 				c = Character.toUpperCase(c);
 			x += (w - font.charWidth(c)) >> 1;
 			if(drawShadows) {
@@ -440,12 +442,12 @@ public class Keyboard implements KeyboardConstants {
 		if(repeated && row != 2) return;
 		if(row >= 0 && row <= 3) {
 			if(x < 0 || x > screenWidth) return;
-			int mode = currentLayout;
-			int kx = offsets[mode][row];
-			for(int col = 0; col < layouts[mode][row].length; col++) {
-				int w = widths[mode][row][col];
+			int l = currentLayout;
+			int kx = offsets[l][row];
+			for(int col = 0; col < layouts[l][row].length; col++) {
+				int w = widths[l][row][col];
 				if(x > kx && x < kx+w) {
-					int key = layouts[mode][row][col];
+					int key = layouts[l][row][col];
 					switch(key) {
 					case SHIFT:
 						if(!repeated) shiftKey();
