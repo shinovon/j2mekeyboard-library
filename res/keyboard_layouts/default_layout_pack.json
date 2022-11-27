@@ -2,7 +2,7 @@
 	"pack_name": "Default",
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru", "es"],
+			"supported_languages": ["en", "ru"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
@@ -13,11 +13,6 @@
 					"res": "default_qwerty_ru.json",
 					"type": "qwerty",
 					"lang": "ru"
-				},
-				{
-					"res": "default_qwerty_es.json",
-					"type": "qwerty",
-					"lang": "es"
 				},
 				{
 					"res": "default_spec_1.json",
@@ -32,7 +27,7 @@
 			]
 		},
 		"url": {
-			"supported_languages": ["en", "ru", "es"],
+			"supported_languages": ["en", "ru"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
@@ -43,11 +38,6 @@
 					"res": "default_qwerty_ru.json",
 					"type": "qwerty",
 					"lang": "ru"
-				},
-				{
-					"res": "default_qwerty_es.json",
-					"type": "qwerty",
-					"lang": "es"
 				},
 				{
 					"res": "default_spec_1.json",
