@@ -114,7 +114,7 @@ public class Keyboard implements KeyboardConstants {
 			public void run() {
 				try {
 					int count = 0;
-					while(true) {
+					while(visible) {
 						if(pressed) {
 							if(count > 10) {
 								if(System.currentTimeMillis() - pt >= holdTime) {
@@ -140,7 +140,6 @@ public class Keyboard implements KeyboardConstants {
 				}
 			}
 		};
-		repeatThread.start();
 		layout();
 	}
 
@@ -269,8 +268,10 @@ public class Keyboard implements KeyboardConstants {
 	
 	public void show() {
 		visible = true;
+		repeatThread.start();
 	}
 	
+	// не забудьте это вызвать после выхода из скрина/канвасом с полем ввода
 	public void hide() {
 		visible = false;
 	}
