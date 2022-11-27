@@ -1,4 +1,4 @@
-package api;
+package cc.nnproject.keyboard;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -255,34 +255,6 @@ public class Keyboard implements KeyboardConstants {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e.toString());
-		}
-	}
-	
-	public void setLanguages(String[] languages) {
-		if(languages.length == 0) {
-			langs = supportedLanguages;
-			langsIdx = supportedLanguagesIdx;
-		} else {
-			Vector v = new Vector();
-			for(int i = 0; i < languages.length; i++) {
-				for(int j = 0; j < supportedLanguages.length; j++) {
-					if(languages[i].equalsIgnoreCase(supportedLanguages[j])) {
-						v.addElement(new Integer(j));
-						break;
-					}
-				}
-			}
-			int l = v.size();
-			langs = new String[l];
-			langsIdx = new int[l];
-			for(int i = 0; i < l; i++) {
-				int k = ((Integer)v.elementAt(i)).intValue();
-				langs[i] = supportedLanguages[k];
-				langsIdx[i] = supportedLanguagesIdx[k];
-			}
-		}
-		if(hasQwertyLayouts) {
-			currentLayout = langsIdx[0];
 		}
 	}
 	
@@ -773,6 +745,34 @@ public class Keyboard implements KeyboardConstants {
 		this.font = font;
 		this.fontHeight = font.getHeight();
 		this.keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
+	}
+	
+	public void setLanguages(String[] languages) {
+		if(languages.length == 0) {
+			langs = supportedLanguages;
+			langsIdx = supportedLanguagesIdx;
+		} else {
+			Vector v = new Vector();
+			for(int i = 0; i < languages.length; i++) {
+				for(int j = 0; j < supportedLanguages.length; j++) {
+					if(languages[i].equalsIgnoreCase(supportedLanguages[j])) {
+						v.addElement(new Integer(j));
+						break;
+					}
+				}
+			}
+			int l = v.size();
+			langs = new String[l];
+			langsIdx = new int[l];
+			for(int i = 0; i < l; i++) {
+				int k = ((Integer)v.elementAt(i)).intValue();
+				langs[i] = supportedLanguages[k];
+				langsIdx[i] = supportedLanguagesIdx[k];
+			}
+		}
+		if(hasQwertyLayouts) {
+			currentLayout = langsIdx[0];
+		}
 	}
 	
 	private void requestRepaint() {

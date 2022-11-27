@@ -1,8 +1,8 @@
-import api.*;
-
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
+
+import cc.nnproject.keyboard.*;
 
 // демка, как примерно это будет выглядеть в реальной программе
 public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardConstants {
