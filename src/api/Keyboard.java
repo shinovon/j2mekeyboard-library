@@ -6,13 +6,13 @@ import javax.microedition.lcdui.Graphics;
 public class Keyboard implements KeyboardConstants {
 	
 	private static final int SHIFT = 1;
-	private static final int BACKSPACE = 2;
-	private static final int SMALL_SHIFT = 3;
-	private static final int SMALL_BACKSPACE = 4;
+	private static final int BACKSPACE = 8;
+	//private static final int SMALL_SHIFT = 3;
+	//private static final int SMALL_BACKSPACE = 4;
 	private static final int LANG = 5;
 	private static final int MODE = 6;
+	private static final int CANCEL = 7;
 	private static final int RETURN = '\n';
-	private static final int CANCEL = 8;
 	private static final int SPACE = ' ';
 	
 	private static final int[][][] layouts = {/*en*/ {
@@ -23,7 +23,7 @@ public class Keyboard implements KeyboardConstants {
 		}, /*ru*/ {
 			{'й','ц','у','к','е','н','г','ш','щ','з','х'}, 
 			{'ф','ы','в','а','п','р','о','л','д','ж','э'}, 
-			{SMALL_SHIFT,'я','ч','с','м','и','т','ь','б','ю',SMALL_BACKSPACE},
+			{SHIFT,'я','ч','с','м','и','т','ь','б','ю',BACKSPACE},
 			{MODE,LANG,',',SPACE,'/','.',RETURN}
 		}, /*spec 1*/ {
 			{'1','2','3','4','5','6','7','8','9','0'},
@@ -106,7 +106,7 @@ public class Keyboard implements KeyboardConstants {
 	private int keyButtonPadding = DEFAULT_BUTTON_PADDING;
 	
 	private Font font = Font.getFont(0, 0, 0);
-	private int fontHeight;
+	private int fontHeight = font.getHeight();
 	
 	private Keyboard(int mode, boolean multiLine, int screenWidth, int screenHeight) {
 		this.screenWidth = screenWidth;
@@ -154,13 +154,13 @@ public class Keyboard implements KeyboardConstants {
 	private boolean layout() {
 		keyStartY = 2;
 		keyEndY = 2;
-		int h = (int) (screenHeight / 10D);
+		int h = screenHeight / 10;
 		if(screenHeight == 640) {
 			h = 58;
 		}
 		keyHeight = h;
 		//keyMarginY = 2;
-		int w1 = (int) (screenWidth / 10D);
+		int w1 = screenWidth / 10;
 		widths = new int[layouts.length][4][];
 		positions = new int[layouts.length][4][];
 		offsets = new int[layouts.length][4];
@@ -183,34 +183,26 @@ public class Keyboard implements KeyboardConstants {
 					int kw = w;
 					switch(key) {
 					case SHIFT:
-						kw = fw;
-						break;
 					case BACKSPACE:
+					case MODE:
+					case RETURN:
 						kw = fw;
 						break;
+					/*
 					case SMALL_SHIFT:
 						kw = w;
 						break;
 					case SMALL_BACKSPACE:
 						kw = w;
 						break;
-					case LANG:
-						kw = w;
-						break;
-					case MODE:
-						kw = fw;
-						break;
-					case RETURN:
-						kw = fw;
-						break;
-					case CANCEL:
-						break;
+					*/
 					case SPACE:
 						kw *= 3;
 						break;
-					case 0:
-						kw = w;
+					case CANCEL:
 						break;
+					case LANG:
+					case 0:
 					default:
 						kw = w;
 						break;
@@ -350,12 +342,13 @@ public class Keyboard implements KeyboardConstants {
 		switch(key) {
 		case SHIFT:
 			b = true;
-			s = layoutsMode[currentLayout] == 1 ? (spec+1)+"/2" : "shift";
+			s = layoutsMode[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[mode][0][0] ? "^" : "shift";
 			break;
 		case BACKSPACE:
 			b = true;
 			s = "<-";
 			break;
+		/*
 		case SMALL_SHIFT:
 			c = '^';
 			break;
@@ -363,6 +356,7 @@ public class Keyboard implements KeyboardConstants {
 			b = true;
 			s = "<-";
 			break;
+		*/
 		case LANG:
 			b = true;
 			s = langs[lang];
@@ -480,12 +474,14 @@ public class Keyboard implements KeyboardConstants {
 					case BACKSPACE:
 						backspace();
 						break;
+					/*
 					case SMALL_SHIFT:
 						if(!repeated) shiftKey();
 						break;
 					case SMALL_BACKSPACE:
 						backspace();
 						break;
+					*/
 					case LANG:
 						if(!repeated) langKey();
 						break;
@@ -642,6 +638,7 @@ public class Keyboard implements KeyboardConstants {
 	public void setFont(Font font) {
 		this.font = font;
 		this.fontHeight = font.getHeight();
+		this.keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 	}
 	
 	private void requestRepaint() {
