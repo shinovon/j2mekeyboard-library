@@ -1,0 +1,83 @@
+{
+	"pack_name": "Default",
+	"keyboards": {
+		"default": {
+			"supported_languages": ["en", "ru", "es"],
+			"layouts": [
+				{
+					"res": "default_qwerty_en.json",
+					"type": "qwerty",
+					"lang": "en"
+				},
+				{
+					"res": "default_qwerty_ru.json",
+					"type": "qwerty",
+					"lang": "ru"
+				},
+				{
+					"res": "default_qwerty_es.json",
+					"type": "qwerty",
+					"lang": "es"
+				},
+				{
+					"res": "default_spec_1.json",
+					"type": "special",
+					"tab": 1
+				},
+				{
+					"res": "default_spec_2.json",
+					"type": "special",
+					"tab": 2
+				}
+			]
+		},
+		"url": {
+			"supported_languages": ["en", "ru", "es"],
+			"layouts": [
+				{
+					"res": "default_qwerty_en.json",
+					"type": "qwerty",
+					"lang": "en"
+				},
+				{
+					"res": "default_qwerty_ru.json",
+					"type": "qwerty",
+					"lang": "ru"
+				},
+				{
+					"res": "default_qwerty_es.json",
+					"type": "qwerty",
+					"lang": "es"
+				},
+				{
+					"res": "default_spec_1.json",
+					"type": "special",
+					"tab": 1
+				},
+				{
+					"res": "default_spec_2.json",
+					"type": "special",
+					"tab": 2
+				}
+			]
+		},
+		"numeric": {
+			"supported_languages": [],
+			"layouts": [
+				{"res": "numeric_1.json"}
+			]
+		},
+		"decimal": {
+			"supported_languages": [],
+			"layouts": [
+				{"res": "decimal_1.json"}
+			]
+		},
+		"phone_number": {
+			"supported_languages": [],
+			"layouts": [
+				{"res": "phone_number_1.json"}
+			]
+		}
+	}
+}

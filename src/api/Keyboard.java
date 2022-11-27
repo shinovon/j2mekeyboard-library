@@ -1,7 +1,18 @@
 package api;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Vector;
+
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
+
+import cc.nnproject.json.AbstractJSON;
+import cc.nnproject.json.JSON;
+import cc.nnproject.json.JSONArray;
+import cc.nnproject.json.JSONObject;
 
 public class Keyboard implements KeyboardConstants {
 	
@@ -14,7 +25,7 @@ public class Keyboard implements KeyboardConstants {
 	private static final int RETURN = '\n';
 	private static final int SPACE = ' ';
 	
-	private static final int[][][] layouts = {/*en*/ { // TODO: переписать под жсон
+	private int[][][] layouts = {/*en*/ { // TODO: переписать под жсон
 			{'q','w','e','r','t','y','u','i','o','p'},
 			{'a','s','d','f','g','h','j','k','l'},
 			{SHIFT,'z','x','c','v','b','n','m',BACKSPACE},
@@ -37,17 +48,15 @@ public class Keyboard implements KeyboardConstants {
 		},
 	};
 	
-	private static final String[] langs = {
-			"en",
-			"ru"
-	};
+	private String[] supportedLanguages;
+	private int[] supportedLanguagesIdx;
 	
-	private static final int[] layoutsMode = {
-			0,
-			0,
-			1,
-			1,
-	};
+	private String[] langs;
+	private int[] langsIdx;
+	
+	private int[] specs;
+	
+	private int[] layoutTypes;
 	
 	private static final int holdTime = 500;
 	private static final int repeatTime = 100;
@@ -76,7 +85,7 @@ public class Keyboard implements KeyboardConstants {
 	
 	private String text = "";
 	
-	private int mode; // TODO
+	private int keyboardType;
 	private boolean multiLine;
 	
 	private boolean pressed;
@@ -107,11 +116,15 @@ public class Keyboard implements KeyboardConstants {
 	
 	private Font font = Font.getFont(0, 0, 0);
 	private int fontHeight = font.getHeight();
+	private String layoutPackRes;
+	private boolean hasQwertyLayouts;
 	
-	private Keyboard(int mode, boolean multiLine, int screenWidth, int screenHeight) {
+	private Keyboard(int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		this.multiLine = multiLine;
+		this.layoutPackRes = layoutPackRes == null ? DEFAULT_LAYOUT_PACK : layoutPackRes;
+		this.keyboardType = keyboardType;
 		repeatThread = new Thread("Key Repeat Thread") {
 			public void run() {
 				try {
@@ -142,15 +155,156 @@ public class Keyboard implements KeyboardConstants {
 				}
 			}
 		};
+		parseLayoutPack();
 		layout();
 	}
 
-	// режимы пока не придумал
-	public static Keyboard initialize(int mode, boolean multiLine, int screenWidth, int screenHeight) {
-		return new Keyboard(mode, multiLine, screenWidth, screenHeight);
+	public static Keyboard initialize(int keyboard, boolean multiLine, int screenWidth, int screenHeight) {
+		return new Keyboard(keyboard, multiLine, screenWidth, screenHeight, null);
+	}
+
+	public static Keyboard initialize(int keyboard, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
+		return new Keyboard(keyboard, multiLine, screenWidth, screenHeight, layoutPackRes);
 	}
 	
-	private boolean layout() {
+	private void parseLayoutPack() {
+		try {
+			JSONObject json = (JSONObject) readJSONRes(layoutPackRes);
+			String m;
+			switch(keyboardType) {
+			case KEYBOARD_DEFAULT:
+				m = "default";
+				break;
+			case KEYBOARD_URL:
+				m = "url";
+				break;
+			case KEYBOARD_NUMERIC:
+				m = "numeric";
+				break;
+			case KEYBOARD_DECIMAL:
+				m = "decimal";
+				break;
+			case KEYBOARD_PHONE_NUMBER:
+				m = "phone_number";
+				break;
+			default:
+				m = "default";
+				break;
+			}
+			json = json.getObject("keyboards");
+			if(!json.has(m)) {
+				throw new RuntimeException("Layout pack " + layoutPackRes + " does not have " + m + " keyboard!");
+			}
+			json = json.getObject(m);
+			JSONArray arr = json.getArray("supported_languages");
+			int i = arr.size();
+			supportedLanguages = new String[i];
+			supportedLanguagesIdx = new int[i];
+			if(hasQwertyLayouts = i != 0) {
+				arr.copyInto(supportedLanguages, 0, i);
+			}
+			arr = json.getArray("layouts");
+			i = arr.size();
+			layouts = new int[i][4][];
+			layoutTypes = new int[i];
+			Enumeration e = arr.elements();
+			i = 0;
+			Vector specialsVector = new Vector();
+			while(e.hasMoreElements()) {
+				JSONObject j = (JSONObject) e.nextElement();
+				String type = j.getNullableString("type");
+				layoutTypes[i] = type == null ? 0 : type.equals("special") ? 1 : 0;
+				if(type != null) {
+					if(type.equals("qwerty")) {
+						String lng = j.getNullableString("lang");
+						if(lng != null) {
+							for(int k = 0; k < supportedLanguages.length; k++) {
+								if(supportedLanguages[k].equals(lng)) {
+									supportedLanguagesIdx[k] = i;
+									break;
+								}
+							}
+						}
+					} if(type.equals("special")) {
+						specialsVector.addElement(new Integer(i));
+					}
+				}
+				int[][] l = new int[4][];
+				JSONArray a = (JSONArray) readJSONRes(j.getString("res"));
+				for(int k = 0; k < 4; k++) {
+					JSONArray b = a.getArray(k);
+					int n = b.size();
+					l[k] = new int[b.size()];
+					for(int p = 0; p < n; p++) {
+						try {
+							l[k][p] = b.getInt(p);
+						} catch (Exception e2) {
+							l[k][p] = b.getString(p).charAt(0);
+						}
+					}
+				}
+				layouts[i] = l;
+				i++;
+			}
+			int l = specialsVector.size();
+			specs = new int[l];
+			for(i = 0; i < l; i++) {
+				specs[i] = ((Integer)specialsVector.elementAt(i)).intValue();
+			}
+			setLanguages(new String[0]);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e.toString());
+		}
+	}
+	
+	public void setLanguages(String[] languages) {
+		if(languages.length == 0) {
+			langs = supportedLanguages;
+			langsIdx = supportedLanguagesIdx;
+		} else {
+			Vector v = new Vector();
+			for(int i = 0; i < languages.length; i++) {
+				for(int j = 0; j < supportedLanguages.length; j++) {
+					if(languages[i].equalsIgnoreCase(supportedLanguages[j])) {
+						v.addElement(new Integer(j));
+						break;
+					}
+				}
+			}
+			int l = v.size();
+			langs = new String[l];
+			langsIdx = new int[l];
+			for(int i = 0; i < l; i++) {
+				int k = ((Integer)v.elementAt(i)).intValue();
+				langs[i] = supportedLanguages[k];
+				langsIdx[i] = supportedLanguagesIdx[k];
+			}
+		}
+		if(hasQwertyLayouts) {
+			currentLayout = langsIdx[0];
+		}
+	}
+	
+	private AbstractJSON readJSONRes(String res) throws IOException {
+		InputStream is = "".getClass().getResourceAsStream(KEYBOARD_LAYOUTS_DIR + res);
+		ByteArrayOutputStream o = new ByteArrayOutputStream();
+		byte[] buf = new byte[128];
+		int i;
+		while((i = is.read(buf)) != -1) {
+			o.write(buf, 0, i);
+		}
+		is.close();
+		String s = new String(o.toByteArray(), "UTF-8"); 
+		o.close();
+		if(s.charAt(0) == '{')
+			return JSON.getObject(s);
+		else if(s.charAt(0) == '[')
+			return JSON.getArray(s);
+		return null;
+	}
+	
+	private void layout() {
 		keyStartY = 2;
 		keyEndY = 2;
 		int h = screenHeight / 10;
@@ -169,7 +323,7 @@ public class Keyboard implements KeyboardConstants {
 			int fz = layouts[l][2].length-2;
 			int fw = ((int) (screenWidth - dw * fz)) >> 1;
 			for(int row = 0; row < 4; row++) {
-				if(row == 3) {
+				if(row == 3 && layouts[l][3].length < layouts[l][2].length) {
 					w = w1;
 					fw = ((int) (screenWidth - w * 7)) >> 1;
 				}
@@ -204,7 +358,6 @@ public class Keyboard implements KeyboardConstants {
 		}
 		keyboardHeight = keyStartY + keyEndY + (keyHeight + keyMarginY) * 4;
 		keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
-		return true;
 	}
 
 	public void setListener(KeyboardListener listener) {
@@ -248,8 +401,14 @@ public class Keyboard implements KeyboardConstants {
 		this.keepShifted = false;
 	}
 	
-	public void setLanguage(int language) {
-		currentLayout = lang = language;
+	public void setLanguage(String language) {
+		for(int i = 0; i < langs.length; i++) {
+			if(langs[i].equalsIgnoreCase(language)) {
+				lang = i;
+				currentLayout = langsIdx[i];
+				break;
+			}
+		}
 	}
 	
 	// почти то же что и очистка но будет возвращать язык и раскладку на дефолтные
@@ -257,7 +416,7 @@ public class Keyboard implements KeyboardConstants {
 		text = "";
 		shifted = false;
 		keepShifted = false;
-		lang = LANG_EN;
+		lang = 0;
 	}
 	
 	public int getHeight() {
@@ -339,7 +498,7 @@ public class Keyboard implements KeyboardConstants {
 			// в спец.символах это должно быть табами
 			// если ширина кнопки такая же как у обычных клавиш, то отображать ^ вместо шифта
 			// и вообще надо приделать картинки
-			s = layoutsMode[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[l][0][0] ? "^" : "shift";
+			s = layoutTypes[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[l][0][0] ? "^" : "shift";
 			break;
 		case BACKSPACE:
 			b = true;
@@ -351,7 +510,7 @@ public class Keyboard implements KeyboardConstants {
 			break;
 		case MODE:
 			b = true;
-			s = layoutsMode[currentLayout] == 0 ? "!#1" : "ABC";
+			s = layoutTypes[currentLayout] == 0 ? "!#1" : "ABC";
 			break;
 		case RETURN:
 			b = true;
@@ -487,10 +646,9 @@ public class Keyboard implements KeyboardConstants {
 	
 	private void modeKey() {
 		shifted = false;
-		if(layoutsMode[currentLayout] == 0) {
-			currentLayout = langs.length;
-			spec = 0;
-		} else if(layoutsMode[currentLayout] == 1) {
+		if(layoutTypes[currentLayout] == 0) {
+			currentLayout = specs[spec = 0];
+		} else if(layoutTypes[currentLayout] == 1) {
 			currentLayout = lang;
 		}
 		requestRepaint();
@@ -503,7 +661,7 @@ public class Keyboard implements KeyboardConstants {
 		if(lang >= l) {
 			lang = 0;
 		}
-		currentLayout = lang;
+		currentLayout = langsIdx[lang];
 		if(listener != null) listener.langChanged();
 		requestRepaint();
 	}
@@ -526,12 +684,12 @@ public class Keyboard implements KeyboardConstants {
 	}
 
 	private void shiftKey() {
-		if(layoutsMode[currentLayout] == 1) {
+		if(layoutTypes[currentLayout] == 1) {
 			keepShifted = false;
 			shifted = false;
 			spec++;
 			if(spec > 1) spec = 0;
-			currentLayout = spec+langs.length;
+			currentLayout = specs[spec];
 		} else if(shifted && !keepShifted) {
 			keepShifted = true;
 		} else {

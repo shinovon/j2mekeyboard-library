@@ -4,9 +4,15 @@ public interface KeyboardConstants {
 
 	// режимы клавы
 	
-	public static final int MODE_DEFAULT = 0;
-	// номер телефона, пинкод и т.п
-	//public static final int MODE_NUMERIC = 1; // TODO
+	public static final int KEYBOARD_DEFAULT = 0;
+	// урл
+	public static final int KEYBOARD_URL = 1;
+	// только цифры
+	public static final int KEYBOARD_NUMERIC = 2;
+	// 
+	public static final int KEYBOARD_DECIMAL = 3;
+	// номер телефона
+	public static final int KEYBOARD_PHONE_NUMBER = 4;
 
 	// цвета
 	
@@ -23,9 +29,7 @@ public interface KeyboardConstants {
 	
 	public static final int DEFAULT_BUTTON_PADDING = 2;
 	
-	// языки
-	
-	public static final int LANG_EN = 0;
-	public static final int LANG_RU = 1;
+	public static final String KEYBOARD_LAYOUTS_DIR = "/keyboard_layouts/";
+	public static final String DEFAULT_LAYOUT_PACK = "default_layout_pack.json";
 	
 }

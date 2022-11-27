@@ -10,7 +10,7 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 	
 	public DemoCanvas() {
 		setFullScreenMode(true);
-		keyboard = Keyboard.initialize(0, false, getWidth(), getHeight());
+		keyboard = Keyboard.initialize(KEYBOARD_DEFAULT, false, getWidth(), getHeight());
 		
 		// стилизация, не обязятельно
 		keyboard.setBackgroundColor(0x000000);
@@ -24,8 +24,10 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 		
 		// начать с большой буквы
 		keyboard.setShifted(true);
+		// выбрать языки
+		keyboard.setLanguages(new String[] { "en", "ru" });
 		// поставить русский язык
-		keyboard.setLanguage(LANG_RU);
+		keyboard.setLanguage("ru");
 		
 		keyboard.setListener(this);
 		keyboard.show();
