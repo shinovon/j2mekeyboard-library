@@ -81,6 +81,7 @@ public class Keyboard implements KeyboardConstants {
 	private boolean multiLine;
 	
 	private boolean pressed;
+	private boolean dragged;
 	private int px;
 	private int py;
 	private long pt;
@@ -128,7 +129,7 @@ public class Keyboard implements KeyboardConstants {
 							} else {
 								count++;
 							}
-							requestRepaint();
+							if(dragged) requestRepaint();
 						} else {
 							count = 0;
 							synchronized(pressLock) {
@@ -423,7 +424,7 @@ public class Keyboard implements KeyboardConstants {
 			synchronized(pressLock) {
 				pressLock.notify();
 			}
-			requestRepaint();
+			if(drawButtons) requestRepaint();
 			return true;
 		}
 		return false;
@@ -431,9 +432,9 @@ public class Keyboard implements KeyboardConstants {
 	
 	public boolean pointerReleased(int x, int y) {
 		if(pressed) {
-			handleTap(x, y-Y, false);
 			pressed = false;
-			requestRepaint();
+			dragged = false;
+			handleTap(x, y-Y, false);
 			return true;
 		}
 		return false;
@@ -445,6 +446,7 @@ public class Keyboard implements KeyboardConstants {
 			if(py == x && py == y) return true;
 			px = x;
 			py = y;
+			dragged = true;
 			return true;
 		}
 		return false;
@@ -452,7 +454,6 @@ public class Keyboard implements KeyboardConstants {
 
 	protected void repeatPress(int x, int y) {
 		handleTap(x, y-Y, true);
-		requestRepaint();
 	}
 	
 	private void handleTap(int x, int y, boolean repeated) {
@@ -563,6 +564,7 @@ public class Keyboard implements KeyboardConstants {
 			keepShifted = false;
 			shifted = !shifted;
 		}
+		requestRepaint();
 	}
 
 	private void typed() {
