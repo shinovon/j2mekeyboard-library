@@ -4,7 +4,7 @@ import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
 
-// демка, как примерно это будет выглядеть
+// демка, как примерно это будет выглядеть в реальной программе
 public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardConstants {
 	Keyboard keyboard;
 	
@@ -20,7 +20,7 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 		keyboard.setTextColor(0xCDCDCD);
 		keyboard.setTextShadowColor(0x2E2E2E);
 		keyboard.setButtons(true);
-		keyboard.setTextShadows(true);
+		keyboard.setTextShadows(false);
 		
 		// начать с большой буквы
 		keyboard.setShifted(true);
@@ -56,6 +56,10 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 	public void pointerReleased(int x, int y) {
 		if(!keyboard.pointerReleased(x, y)) {
 			// чето делать здесь...
+			if(!keyboard.isVisible()) {
+				keyboard.show();
+				repaint();
+			}
 		}
 	}
 	

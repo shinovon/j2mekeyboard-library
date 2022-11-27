@@ -7,11 +7,8 @@ public class Keyboard implements KeyboardConstants {
 	
 	private static final int SHIFT = 1;
 	private static final int BACKSPACE = 8;
-	//private static final int SMALL_SHIFT = 3;
-	//private static final int SMALL_BACKSPACE = 4;
 	private static final int LANG = 5;
 	private static final int MODE = 6;
-	private static final int CANCEL = 7;
 	private static final int RETURN = '\n';
 	private static final int SPACE = ' ';
 	
@@ -189,24 +186,13 @@ public class Keyboard implements KeyboardConstants {
 					case RETURN:
 						kw = fw;
 						break;
-					/*
-					case SMALL_SHIFT:
-						kw = w;
-						break;
-					case SMALL_BACKSPACE:
-						kw = w;
-						break;
-					*/
 					case SPACE:
 						kw *= 3;
 						break;
-					case CANCEL:
-						break;
-					case LANG:
-					case 0:
-					default:
-						kw = w;
-						break;
+					//case LANG:
+					//case 0:
+					//default:
+					//	break;
 					}
 					widths[l][row][col] = kw;
 					positions[l][row][col] = x;
@@ -255,7 +241,8 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	public void setShifted(boolean shifted) {
-		shifted = true;
+		this.shifted = true;
+		this.keepShifted = false;
 	}
 	
 	public void setLanguage(int language) {
@@ -289,17 +276,16 @@ public class Keyboard implements KeyboardConstants {
 	// возвращает сколько высоты экрана забрало
 	public int paint(Graphics g, int screenWidth, int screenHeight) {
 		if(!visible) return 0;
+		// если размеры экрана изменились, то сделать релэйаут
 		if(this.screenWidth == 0 || screenWidth != this.screenWidth || screenHeight != this.screenHeight) {
 			this.screenWidth = screenWidth;
 			this.screenHeight = screenHeight;
 			layout();
 		}
-		Y = screenHeight - keyboardHeight;
-		g.translate(0, Y);
+		g.translate(0, Y = screenHeight - keyboardHeight);
 		g.setFont(font);
 		g.setColor(bgColor);
 		g.fillRect(0, 0, screenWidth, keyboardHeight);
-		
 		int y = keyStartY;
 		int mode = currentLayout;
 		for(int row = 0; row < layouts[mode].length; row++) {
@@ -323,6 +309,7 @@ public class Keyboard implements KeyboardConstants {
 		h -= keyButtonPadding*2;
 		g.fillRect(x, y, w, h);
 		g.setColor(keyButtonOutlineColor);
+		// если паддинг = 0, рисовать границы
 		if(keyButtonPadding == 0) {
 			g.drawRect(x, y, w, h);
 		} else if(roundButtons) {
@@ -343,21 +330,15 @@ public class Keyboard implements KeyboardConstants {
 		switch(key) {
 		case SHIFT:
 			b = true;
+			// в спец.символах это должно быть табами
+			// если ширина кнопки такая же как у обычных клавиш, то отображать ^ вместо шифта
+			// и вообще надо приделать картинки
 			s = layoutsMode[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[mode][0][0] ? "^" : "shift";
 			break;
 		case BACKSPACE:
 			b = true;
 			s = "<-";
 			break;
-		/*
-		case SMALL_SHIFT:
-			c = '^';
-			break;
-		case SMALL_BACKSPACE:
-			b = true;
-			s = "<-";
-			break;
-		*/
 		case LANG:
 			b = true;
 			s = langs[lang];
@@ -370,16 +351,13 @@ public class Keyboard implements KeyboardConstants {
 			b = true;
 			s = multiLine ? "->" : "OK";
 			break;
-		case CANCEL:
-			b = true;
-			s = "cancel";
-			break;
 		case SPACE:
 			b = true;
 			s = "space";
 			break;
 		case 0:
-			break;
+			// если 0, то клавиша пустая 
+			return w;
 		default:
 			c = (char) key;
 			break;
@@ -410,7 +388,7 @@ public class Keyboard implements KeyboardConstants {
 			g.setColor(textColor);
 			g.drawChar(c, x, y, 0);
 		}
-		return widths[mode][row][column];
+		return w;
 	}
 	
 	// true если забрать, false если отдать
@@ -475,14 +453,6 @@ public class Keyboard implements KeyboardConstants {
 					case BACKSPACE:
 						backspace();
 						break;
-					/*
-					case SMALL_SHIFT:
-						if(!repeated) shiftKey();
-						break;
-					case SMALL_BACKSPACE:
-						backspace();
-						break;
-					*/
 					case LANG:
 						if(!repeated) langKey();
 						break;
@@ -491,9 +461,6 @@ public class Keyboard implements KeyboardConstants {
 						break;
 					case RETURN:
 						if(!repeated) enter();
-						break;
-					case CANCEL:
-						//if(!repeated) cancel();
 						break;
 					case SPACE:
 						if(!repeated) space();
