@@ -9,6 +9,8 @@ public class Keyboard implements KeyboardConstants {
 	private static final int LANG = 2;
 	private static final int MODE = 3;
 	private static final int BACKSPACE = 8;
+	private static final int EMPTY = 0;
+	private static final int NO_KEY = -1;
 	private static final int RETURN = '\n';
 	private static final int SPACE = ' ';
 	
@@ -324,9 +326,10 @@ public class Keyboard implements KeyboardConstants {
 	}
 
 	private int drawKey(Graphics g, int row, int column, int x, int y, int l) {
-		int w = widths[l][row][column];
-		drawKeyButton(g, x, y, w);
 		int key = layouts[l][row][column];
+		int w = widths[l][row][column];
+		if(key == NO_KEY) return w;
+		drawKeyButton(g, x, y, w);
 		String s = null;
 		char c = 0;
 		boolean b = false;
@@ -358,7 +361,7 @@ public class Keyboard implements KeyboardConstants {
 			b = true;
 			s = "space";
 			break;
-		case 0:
+		case EMPTY:
 			// если 0, то клавиша пустая 
 			return w;
 		default:
@@ -468,7 +471,8 @@ public class Keyboard implements KeyboardConstants {
 					case SPACE:
 						if(!repeated) space();
 						break;
-					case 0:
+					case EMPTY:
+					case NO_KEY:
 						break;
 					default:
 						if(!repeated) type((char) key);
