@@ -11,7 +11,7 @@ public class Keyboard implements KeyboardConstants {
 	private static final int SMALL_BACKSPACE = 4;
 	private static final int LANG = 5;
 	private static final int MODE = 6;
-	private static final int RETURN = 7;
+	private static final int RETURN = '\n';
 	private static final int CANCEL = 8;
 	private static final int SPACE = ' ';
 	
@@ -49,6 +49,9 @@ public class Keyboard implements KeyboardConstants {
 			1,
 			1,
 	};
+	
+	private static final int holdTime = 500;
+	private static final int repeatTime = 100;
 
 	private int[][][] widths;
 	private int[][][] positions;
@@ -87,12 +90,8 @@ public class Keyboard implements KeyboardConstants {
 
 	private Thread repeatThread;
 	private Object pressLock = new Object();
-	private Font font;
-	private int holdTime = 500;
-	private int repeatTime = 100;
 
 	private int keyTextY;
-	private int fontHeight;
 	
 	// стиль
 	private int bgColor = DEFAULT_BACKGROUND_COLOR;
@@ -105,6 +104,9 @@ public class Keyboard implements KeyboardConstants {
 	private boolean drawShadows = DEFAULT_TEXT_SHADOWS;
 	private boolean roundButtons = DEFAULT_ROUND_BUTTONS;
 	private int keyButtonPadding = DEFAULT_BUTTON_PADDING;
+	
+	private Font font = Font.getFont(0, 0, 0);
+	private int fontHeight;
 	
 	private Keyboard(int mode, boolean multiLine, int screenWidth, int screenHeight) {
 		this.screenWidth = screenWidth;
@@ -141,8 +143,6 @@ public class Keyboard implements KeyboardConstants {
 			}
 		};
 		repeatThread.start();
-		font = Font.getFont(0, 0, 0);
-		fontHeight = font.getHeight();
 		layout();
 	}
 
@@ -544,14 +544,14 @@ public class Keyboard implements KeyboardConstants {
 	}
 
 	private void enter() {
+		// если мультилайн мод, добавить \n, иначе послать эвент
 		if(multiLine) {
 			type('\n');
 			if(listener != null) listener.newLine();
 		} else {
-			text = "";
 			if(listener != null) listener.done();
-			requestRepaint();
 		}
+		requestRepaint();
 	}
 
 	private void shiftKey() {
@@ -637,6 +637,11 @@ public class Keyboard implements KeyboardConstants {
 	
 	public void setButtonPadding(int padding) {
 		this.keyButtonPadding = padding;
+	}
+	
+	public void setFont(Font font) {
+		this.font = font;
+		this.fontHeight = font.getHeight();
 	}
 	
 	private void requestRepaint() {
