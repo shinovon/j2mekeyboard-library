@@ -64,19 +64,19 @@
 		"numeric": {
 			"supported_languages": [],
 			"layouts": [
-				{"res": "numeric_1.json"}
+				{"res": "numeric.json"}
 			]
 		},
 		"decimal": {
 			"supported_languages": [],
 			"layouts": [
-				{"res": "decimal_1.json"}
+				{"res": "decimal.json"}
 			]
 		},
 		"phone_number": {
 			"supported_languages": [],
 			"layouts": [
-				{"res": "phone_number_1.json"}
+				{"res": "phone_number.json"}
 			]
 		}
 	}
