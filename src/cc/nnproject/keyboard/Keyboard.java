@@ -14,16 +14,8 @@ import cc.nnproject.json.JSON;
 import cc.nnproject.json.JSONArray;
 import cc.nnproject.json.JSONObject;
 
-public class Keyboard implements KeyboardConstants {
+public final class Keyboard implements KeyboardConstants {
 	
-	private static final int SHIFT = 1;
-	private static final int LANG = 2;
-	private static final int MODE = 3;
-	private static final int BACKSPACE = 8;
-	private static final int EMPTY = 0;
-	private static final int NO_KEY = -1;
-	private static final int RETURN = '\n';
-	private static final int SPACE = ' ';
 	
 	private int[][][] layouts;
 	
@@ -67,11 +59,11 @@ public class Keyboard implements KeyboardConstants {
 	private int keyboardType;
 	private boolean multiLine;
 	
-	private boolean pressed;
-	private boolean dragged;
-	private int px;
-	private int py;
-	private long pt;
+	boolean pressed;
+	boolean dragged;
+	int px;
+	int py;
+	long pt;
 	
 	private int screenWidth;
 	private int screenHeight;
@@ -138,12 +130,37 @@ public class Keyboard implements KeyboardConstants {
 		layout();
 	}
 
-	public static Keyboard initialize(int keyboard, boolean multiLine, int screenWidth, int screenHeight) {
-		return new Keyboard(keyboard, multiLine, screenWidth, screenHeight, null);
+	/**
+	 * Инициализация с дефолтной раскладкой
+	 * @param multiLine
+	 * @param screenWidth
+	 * @param screenHeight
+	 */
+	public static Keyboard getKeyboard(boolean multiLine, int screenWidth, int screenHeight) {
+		return new Keyboard(KEYBOARD_DEFAULT, multiLine, screenWidth, screenHeight, null);
+	}
+	
+	/**
+	 * Инициализация клавы
+	 * @param keyboardType
+	 * @param multiLine
+	 * @param screenWidth
+	 * @param screenHeight
+	 */
+	public static Keyboard getKeyboard(int keyboardType, boolean multiLine, int screenWidth, int screenHeight) {
+		return new Keyboard(keyboardType, multiLine, screenWidth, screenHeight, null);
 	}
 
-	public static Keyboard initialize(int keyboard, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
-		return new Keyboard(keyboard, multiLine, screenWidth, screenHeight, layoutPackRes);
+	/**
+	 * Инициализация клавы с кастомным паком раскладок
+	 * @param keyboardType
+	 * @param multiLine
+	 * @param screenWidth
+	 * @param screenHeight
+	 * @param layoutPackRes
+	 */
+	public static Keyboard getKeyboard(int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
+		return new Keyboard(keyboardType, multiLine, screenWidth, screenHeight, layoutPackRes);
 	}
 	
 	private void parseLayoutPack() {
@@ -288,13 +305,13 @@ public class Keyboard implements KeyboardConstants {
 					int key = layouts[l][row][col];
 					int kw = w;
 					switch(key) {
-					case SHIFT:
-					case BACKSPACE:
-					case MODE:
-					case RETURN:
+					case KEY_SHIFT:
+					case KEY_BACKSPACE:
+					case KEY_MODE:
+					case KEY_RETURN:
 						kw = fw;
 						break;
-					case SPACE:
+					case KEY_SPACE:
 						kw *= 3;
 						break;
 					}
@@ -309,45 +326,90 @@ public class Keyboard implements KeyboardConstants {
 		keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 	}
 
+	/**
+	 * Установка листенера клавиатуры
+	 * @param listener
+	 */
 	public void setListener(KeyboardListener listener) {
 		this.listener = listener;
 	}
 	
-	// текст
-	
+	/**
+	 * Введенный текст
+	 */
 	public String getText() {
 		return text;
 	}
 	
+	/**
+	 * Длина введенного текста
+	 */
 	public int getLength() {
 		return text.length();
 	}
 	
+	/**
+	 * Установить текст
+	 * @param s
+	 */
 	public void setText(String s) {
 		text = s;
 	}
 	
+	/**
+	 * Добавить текст
+	 * @param s
+	 */
 	public void appendText(String s) {
 		text += s;
 	}
 	
+	/**
+	 * Вставить текст
+	 * @param s
+	 * @param index
+	 */
+	public void insertText(String s, int index) {
+		text = text.substring(0, index) + s + text.substring(index);
+	}
+	
+	/**
+	 * Убрать символ из текста
+	 * @param index
+	 */
 	public void removeChar(int index) {
 		text = text.substring(0, index) + text.substring(index + 1);
 	}
 	
+	/**
+	 * Убрать кусок текста
+	 * @param start
+	 * @param end
+	 */
 	public void remove(int start, int end) {
 		text = text.substring(0, start) + text.substring(end + 1);
 	}
-	
+
+	/**
+	 * Очистка текста
+	 */
 	public void clear() {
 		text = "";
 	}
 	
+	/**
+	 * Шифт.
+	 */
 	public void setShifted(boolean shifted) {
 		this.shifted = true;
 		this.keepShifted = false;
 	}
 	
+	/**
+	 * Выбрать язык клавиатуры
+	 * <p><i>Если в текущей клавиатуре нет QWERTY раскладок, вызов будет проигнорирован</i></p>
+	 * @param language
+	 */
 	public void setLanguage(String language) {
 		if(!hasQwertyLayouts) {
 			return;
@@ -361,14 +423,22 @@ public class Keyboard implements KeyboardConstants {
 		}
 	}
 	
-	// почти то же что и очистка но будет возвращать язык и раскладку на дефолтные
+	/**
+	 * Сброс ввода
+	 * <p>Почти то же, что и очистка но будет возвращать язык и раскладку на значения по умолчанию</p>
+	 */
 	public void reset() {
 		text = "";
 		shifted = false;
 		keepShifted = false;
-		lang = 0;
+		if(hasQwertyLayouts) {
+			currentLayout = langsIdx[lang = 0];
+		}
 	}
 	
+	/**
+	 * @return Высота виртуальной клавиатуры
+	 */
 	public int getHeight() {
 		return keyboardHeight;
 	}
@@ -377,17 +447,29 @@ public class Keyboard implements KeyboardConstants {
 		return visible;
 	}
 	
+	/**
+	 * Показать клавиатуру
+	 */
 	public void show() {
 		visible = true;
 		repeatThread.start();
 	}
 	
-	// не забудьте это вызвать после выхода из скрина/канвасом с полем ввода
+	/**
+	 * Скрыть клавиатуру
+	 * <p><i>Не забудьте вызвать это при скрытии экрана с клавиатурой</i></p>
+	 */
 	public void hide() {
 		visible = false;
 	}
 	
-	// возвращает сколько высоты экрана забрало
+	/**
+	 * Отрисовка виртуальной клавиатуры
+	 * @param g
+	 * @param screenWidth
+	 * @param screenHeight
+	 * @return Сколько высоты экрана забрало
+	 */
 	public int paint(Graphics g, int screenWidth, int screenHeight) {
 		if(!visible) return 0;
 		// если размеры экрана изменились, то сделать релэйаут
@@ -437,40 +519,40 @@ public class Keyboard implements KeyboardConstants {
 	private int drawKey(Graphics g, int row, int column, int x, int y, int l) {
 		int key = layouts[l][row][column];
 		int w = widths[l][row][column];
-		if(key == NO_KEY) return w;
+		if(key == KEY_UNDEFINED) return w;
 		drawKeyButton(g, x, y, w);
 		String s = null;
 		char c = 0;
 		boolean b = false;
 		switch(key) {
-		case SHIFT:
+		case KEY_SHIFT:
 			b = true;
 			// в спец.символах это должно быть табами
 			// если ширина кнопки такая же как у обычных клавиш, то отображать ^ вместо шифта
 			// и вообще надо приделать картинки
 			s = layoutTypes[currentLayout] == 1 ? (spec+1)+"/2" : w <= widths[l][0][0] ? "^" : "shift";
 			break;
-		case BACKSPACE:
+		case KEY_BACKSPACE:
 			b = true;
 			s = "<-";
 			break;
-		case LANG:
+		case KEY_LANG:
 			b = true;
 			s = langs[lang];
 			break;
-		case MODE:
+		case KEY_MODE:
 			b = true;
 			s = layoutTypes[currentLayout] == 0 ? "!#1" : "ABC";
 			break;
-		case RETURN:
+		case KEY_RETURN:
 			b = true;
 			s = multiLine ? "->" : "OK";
 			break;
-		case SPACE:
+		case KEY_SPACE:
 			b = true;
 			s = "space";
 			break;
-		case EMPTY:
+		case KEY_EMPTY:
 			// если 0, то клавиша пустая 
 			return w;
 		default:
@@ -506,8 +588,10 @@ public class Keyboard implements KeyboardConstants {
 		return w;
 	}
 	
-	// true если забрать, false если отдать
-	
+	/**
+	 * Обработка нажатия пальца
+	 * @return true если клава забрала эвент
+	 */
 	public boolean pointerPressed(int x, int y) {
 		if(y >= Y && visible) {
 			pressed = true;
@@ -522,7 +606,11 @@ public class Keyboard implements KeyboardConstants {
 		}
 		return false;
 	}
-	
+
+	/**
+	 * Обработка отпускания пальца
+	 * @return true если клава забрала эвент
+	 */
 	public boolean pointerReleased(int x, int y) {
 		if(pressed) {
 			pressed = false;
@@ -532,7 +620,11 @@ public class Keyboard implements KeyboardConstants {
 		}
 		return false;
 	}
-	
+
+	/**
+	 * Обработка перемещения пальца
+	 * @return true если клава забрала эвент
+	 */
 	public boolean pointerDragged(int x, int y) {
 		if(pressed) {
 			// filter
@@ -545,7 +637,7 @@ public class Keyboard implements KeyboardConstants {
 		return false;
 	}
 
-	protected void repeatPress(int x, int y) {
+	void repeatPress(int x, int y) {
 		handleTap(x, y-Y, true);
 	}
 	
@@ -562,26 +654,26 @@ public class Keyboard implements KeyboardConstants {
 				if(x > kx && x < kx+w) {
 					int key = layouts[l][row][col];
 					switch(key) {
-					case SHIFT:
+					case KEY_SHIFT:
 						if(!repeated) shiftKey();
 						break;
-					case BACKSPACE:
+					case KEY_BACKSPACE:
 						backspace();
 						break;
-					case LANG:
+					case KEY_LANG:
 						if(!repeated) langKey();
 						break;
-					case MODE:
+					case KEY_MODE:
 						if(!repeated) modeKey();
 						break;
-					case RETURN:
+					case KEY_RETURN:
 						if(!repeated) enter();
 						break;
-					case SPACE:
+					case KEY_SPACE:
 						if(!repeated) space();
 						break;
-					case EMPTY:
-					case NO_KEY:
+					case KEY_EMPTY:
+					case KEY_UNDEFINED:
 						break;
 					default:
 						if(!repeated) type((char) key);
@@ -615,7 +707,8 @@ public class Keyboard implements KeyboardConstants {
 		if(listener != null) listener.langChanged();
 		requestRepaint();
 	}
-	
+
+	// деление без остатка
 	private int div(int i, int j) {
 		double d = i;
 		d /= j;
@@ -679,54 +772,101 @@ public class Keyboard implements KeyboardConstants {
 	
 	// стиль
 	
+	/**
+	 * Задать цвет фона
+	 * @param color
+	 */
 	public void setBackgroundColor(int color) {	
 		this.bgColor = color;
 	}
 	
+	/**
+	 * Задать цвет кнопки
+	 * @param color
+	 */
 	public void setButtonColor(int color) {	
 		this.keyButtonColor = color;
 	}
 	
+	/**
+	 * Задать цвет нажатой кнопки
+	 * @param color
+	 */
 	public void setButtonHoverColor(int color) {	
 		this.keyButtonHoverColor = color;
 	}
 	
+	/**
+	 * Задать цвет обводки кнопок
+	 * @param color
+	 */
 	public void setButtonOutlineColor(int color) {	
 		this.keyButtonOutlineColor = color;
 	}
-	
+
+	/**
+	 * Задать цвет текста
+	 * @param color
+	 */
 	public void setTextColor(int color) {	
 		this.textColor = color;
 	}
 	
+	/**
+	 * Задать цвет обводки текста
+	 * @param color
+	 */
 	public void setTextShadowColor(int color) {	
 		this.textShadowColor = color;
 	}
 	
+	/**
+	 * Включить отображение кнопок
+	 * @param enabled
+	 */
 	public void setButtons(boolean enabled) {
 		this.drawButtons = enabled;
 	}
 	
+	/**
+	 * Включить обводку текста
+	 * @param enabled
+	 */
 	public void setTextShadows(boolean enabled) {
 		this.drawShadows = enabled;
 	}
 	
+	/**
+	 * Включить "закругление" кнопок
+	 * @param enabled
+	 */
 	public void setRoundButtons(boolean enabled) {
 		this.roundButtons = enabled;
 	}
 	
+	/**
+	 * Изменить паддинг кнопок
+	 * @param padding
+	 */
 	public void setButtonPadding(int padding) {
 		this.keyButtonPadding = padding;
 	}
 	
+	/**
+	 * Изменить шрифт
+	 * @param font
+	 */
 	public void setFont(Font font) {
 		this.font = font;
 		this.fontHeight = font.getHeight();
 		this.keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 	}
 	
-	// пустой массив чтобы выбрать все доступные языки
-	// но возможно тогда юзверю придется много раз нажимать на кнопку языка чтобы найти нужный
+	/**
+	 * <p>Изменить доступные языки</p>
+	 * @param languages Можно пустой массив чтобы выбрать все доступные языки,<br>
+	 * но возможно тогда юзверю придется много раз нажимать на кнопку языка чтобы найти нужный
+	 */
 	public void setLanguages(String[] languages) {
 		if(languages.length == 0 || !hasQwertyLayouts) {
 			langs = supportedLanguages;
@@ -759,7 +899,7 @@ public class Keyboard implements KeyboardConstants {
 		}
 	}
 	
-	private void requestRepaint() {
+	void requestRepaint() {
 		if(listener != null) listener.requestRepaint();
 	}
 

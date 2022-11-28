@@ -2,19 +2,37 @@ package cc.nnproject.keyboard;
 
 public interface KeyboardListener {
 	
-	// false если надо отменить
+	/**
+	 * Эвент нажатия на клавишу, действие можно отменить возвратив false
+	 */
 	public boolean appendChar(char c);
 	
+	/**
+	 * Эвент нажатия на бэкспейс
+	 */
 	public void charRemoved();
 	
+	/**
+	 * Эвент изменения языка
+	 */
 	public void langChanged();
-	
-	// режим с много строками
+
+	/**
+	 * Эвент нажатия на OK при включенном многострочном режиме,
+	 * <p>
+	 * <i>Перед ним всегда отправляется эвент</i> <code>onChar('\n')</code>
+	 * </p>
+	 */
 	public void newLine();
 	
-	// режим с одной строкой
+	/**
+	 * Эвент нажатия на OK при выключенном многострочном режиме
+	 */
 	public void done();
 	
+	/**
+	 * Запрос перерисовки, лучше всего это делать асинхронно
+	 */
 	public void requestRepaint();
 
 }

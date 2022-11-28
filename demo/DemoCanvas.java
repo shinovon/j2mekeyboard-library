@@ -10,7 +10,7 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 	
 	public DemoCanvas() {
 		setFullScreenMode(true);
-		keyboard = Keyboard.initialize(KEYBOARD_DEFAULT, false, getWidth(), getHeight());
+		keyboard = Keyboard.getKeyboard(false, getWidth(), getHeight());
 		
 		// стилизация, не обязятельно
 		keyboard.setBackgroundColor(0x000000);
