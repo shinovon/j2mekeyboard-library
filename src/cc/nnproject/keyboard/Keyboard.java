@@ -151,9 +151,6 @@ public class Keyboard implements KeyboardConstants {
 			JSONObject json = (JSONObject) readJSONRes(layoutPackRes);
 			String m;
 			switch(keyboardType) {
-			case KEYBOARD_DEFAULT:
-				m = "default";
-				break;
 			case KEYBOARD_URL:
 				m = "url";
 				break;
@@ -166,6 +163,7 @@ public class Keyboard implements KeyboardConstants {
 			case KEYBOARD_PHONE_NUMBER:
 				m = "phone_number";
 				break;
+			case KEYBOARD_DEFAULT:
 			default:
 				m = "default";
 				break;
@@ -174,7 +172,11 @@ public class Keyboard implements KeyboardConstants {
 			if(!json.has(m)) {
 				throw new RuntimeException("Layout pack " + layoutPackRes + " does not have " + m + " keyboard!");
 			}
-			json = json.getObject(m);
+			if(json.getObject(m).has("base")) {
+				json = json.getObject(json.getObject(m).getString("base"));
+			} else {
+				json = json.getObject(m);
+			}
 			JSONArray arr = json.getArray("supported_languages");
 			int i = arr.size();
 			supportedLanguages = new String[i];
@@ -295,10 +297,6 @@ public class Keyboard implements KeyboardConstants {
 					case SPACE:
 						kw *= 3;
 						break;
-					//case LANG:
-					//case 0:
-					//default:
-					//	break;
 					}
 					widths[l][row][col] = kw;
 					positions[l][row][col] = x;
@@ -351,6 +349,9 @@ public class Keyboard implements KeyboardConstants {
 	}
 	
 	public void setLanguage(String language) {
+		if(!hasQwertyLayouts) {
+			return;
+		}
 		for(int i = 0; i < langs.length; i++) {
 			if(langs[i].equalsIgnoreCase(language)) {
 				lang = i;
@@ -727,7 +728,7 @@ public class Keyboard implements KeyboardConstants {
 	// пустой массив чтобы выбрать все доступные языки
 	// но возможно тогда юзверю придется много раз нажимать на кнопку языка чтобы найти нужный
 	public void setLanguages(String[] languages) {
-		if(languages.length == 0) {
+		if(languages.length == 0 || !hasQwertyLayouts) {
 			langs = supportedLanguages;
 			langsIdx = supportedLanguagesIdx;
 		} else {

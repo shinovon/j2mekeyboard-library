@@ -27,29 +27,7 @@
 			]
 		},
 		"url": {
-			"supported_languages": ["en", "ru"],
-			"layouts": [
-				{
-					"res": "default_qwerty_en.json",
-					"type": "qwerty",
-					"lang": "en"
-				},
-				{
-					"res": "default_qwerty_ru.json",
-					"type": "qwerty",
-					"lang": "ru"
-				},
-				{
-					"res": "default_spec_1.json",
-					"type": "special",
-					"tab": 1
-				},
-				{
-					"res": "default_spec_2.json",
-					"type": "special",
-					"tab": 2
-				}
-			]
+			"base": "default"
 		},
 		"numeric": {
 			"supported_languages": [],
