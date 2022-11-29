@@ -20,6 +20,11 @@
 					"lang": "ru"
 				},
 				{
+					"res": "default_qwerty_es.json",
+					"type": "qwerty",
+					"lang": "es"
+				},
+				{
 					"res": "default_spec_1.json",
 					"type": "special",
 					"tab": 1
