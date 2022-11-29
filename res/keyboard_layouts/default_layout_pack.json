@@ -1,10 +1,10 @@
 {
 	"pack_name": "Default",
-	"languages": {
-		"en": "English",
-		"es": "Español",
-		"ru": "Русский"
-	},
+	"languages": [
+		{"en": "English"},
+		{"es": "Español"},
+		{"ru": "Русский"}
+	],
 	"keyboards": {
 		"default": {
 			"supported_languages": ["en", "ru", "es"],

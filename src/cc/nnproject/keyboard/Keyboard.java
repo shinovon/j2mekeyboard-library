@@ -929,12 +929,13 @@ public final class Keyboard implements KeyboardConstants {
 	public static String[] getSupportedLanguages(String layoutPackRes) {
 		try {
 			JSONObject json = (JSONObject) readJSONRes(layoutPackRes);
-			json = json.getObject("languages");
-			String[] res = new String[json.size()];
-			Enumeration e = json.keys();
+			JSONArray arr = json.getArray("languages");
+			String[] res = new String[arr.size()];
+			Enumeration e = arr.elements();
 			int i = 0;
 			while(e.hasMoreElements()) {
-				String lng = (String) e.nextElement();
+				JSONObject o = (JSONObject) e.nextElement();
+				String lng = (String) o.keys().nextElement();
 				res[i++] = json.getString(lng) + " [" + lng + "]";
 			}
 			return res;
