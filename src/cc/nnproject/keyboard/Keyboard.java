@@ -262,7 +262,7 @@ public final class Keyboard implements KeyboardConstants {
 		}
 	}
 	
-	private AbstractJSON readJSONRes(String res) throws IOException {
+	private static AbstractJSON readJSONRes(String res) throws IOException {
 		InputStream is = "".getClass().getResourceAsStream(KEYBOARD_LAYOUTS_DIR + res);
 		ByteArrayOutputStream o = new ByteArrayOutputStream();
 		byte[] buf = new byte[128];
@@ -920,6 +920,27 @@ public final class Keyboard implements KeyboardConstants {
 	
 	void requestRepaint() {
 		if(listener != null) listener.requestRepaint();
+	}
+	
+	public static String[] getSupportedLanguages() {
+		return getSupportedLanguages(DEFAULT_LAYOUT_PACK);
+	}
+	
+	public static String[] getSupportedLanguages(String layoutPackRes) {
+		try {
+			JSONObject json = (JSONObject) readJSONRes(layoutPackRes);
+			json = json.getObject("languages");
+			String[] res = new String[json.size()];
+			Enumeration e = json.keys();
+			int i = 0;
+			while(e.hasMoreElements()) {
+				String lng = (String) e.nextElement();
+				res[i++] = json.getString(lng) + " [" + lng + "]";
+			}
+			return res;
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
 	}
 
 }

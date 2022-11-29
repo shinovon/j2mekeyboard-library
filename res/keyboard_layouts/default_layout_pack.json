@@ -1,8 +1,13 @@
 {
 	"pack_name": "Default",
+	"languages": {
+		"en": "English",
+		"es": "Español",
+		"ru": "Русский"
+	},
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru"],
+			"supported_languages": ["en", "ru", "es"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
