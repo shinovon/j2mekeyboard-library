@@ -16,7 +16,6 @@ import cc.nnproject.json.JSONObject;
 
 public final class Keyboard implements KeyboardConstants {
 	
-	
 	private int[][][] layouts;
 	
 	private String[] supportedLanguages;
@@ -461,8 +460,14 @@ public final class Keyboard implements KeyboardConstants {
 	 * Показать клавиатуру
 	 */
 	public void show() {
+		if(visible) {
+			return;
+		}
 		visible = true;
-		repeatThread.start();
+		try {
+			repeatThread.start();
+		} catch (Exception e) {
+		}
 	}
 	
 	/**
@@ -471,6 +476,10 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public void hide() {
 		visible = false;
+		try {
+			repeatThread.interrupt();
+		} catch (Exception e) {
+		}
 	}
 	
 	/**
