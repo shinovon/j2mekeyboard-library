@@ -936,7 +936,7 @@ public final class Keyboard implements KeyboardConstants {
 			while(e.hasMoreElements()) {
 				JSONObject o = (JSONObject) e.nextElement();
 				String lng = (String) o.keys().nextElement();
-				res[i++] = json.getString(lng) + " [" + lng + "]";
+				res[i++] = o.getString(lng) + " [" + lng + "]";
 			}
 			return res;
 		} catch (IOException e) {
