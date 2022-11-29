@@ -8,9 +8,9 @@ public interface KeyboardListener {
 	public boolean appendChar(char c);
 	
 	/**
-	 * Эвент нажатия на бэкспейс
+	 * Эвент нажатия на бэкспейс, действие можно отменить возвратив false
 	 */
-	public void charRemoved();
+	public boolean removeChar();
 	
 	/**
 	 * Эвент изменения языка
@@ -18,12 +18,9 @@ public interface KeyboardListener {
 	public void langChanged();
 
 	/**
-	 * Эвент нажатия на OK при включенном многострочном режиме,
-	 * <p>
-	 * <i>Перед ним всегда отправляется эвент</i> <code>onChar('\n')</code>
-	 * </p>
+	 * Эвент обновления текста
 	 */
-	public void newLine();
+	public void textUpdated();
 	
 	/**
 	 * Эвент нажатия на OK при выключенном многострочном режиме

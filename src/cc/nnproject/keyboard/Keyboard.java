@@ -729,11 +729,10 @@ public final class Keyboard implements KeyboardConstants {
 		// если мультилайн мод, добавить \n, иначе послать эвент
 		if(multiLine) {
 			type('\n');
-			if(listener != null) listener.newLine();
 		} else {
 			if(listener != null) listener.done();
 		}
-		requestRepaint();
+		textUpdated();
 	}
 
 	private void shiftKey() {
@@ -752,7 +751,8 @@ public final class Keyboard implements KeyboardConstants {
 		requestRepaint();
 	}
 
-	private void typed() {
+	private void textUpdated() {
+		if(listener != null) listener.textUpdated();
 		requestRepaint();
 	}
 
@@ -763,21 +763,21 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		if(listener != null && !listener.appendChar(c)) return;
 		text += c;
-		typed();
+		textUpdated();
 	}
 	
 	private void space() {
 		if(listener != null && !listener.appendChar(' ')) return;
 		text += " ";
-		typed();
+		textUpdated();
 	}
 	
 	private void backspace() {
+		if(listener != null && !listener.removeChar()) return;
 		if(text.length() > 0) {
 			text = text.substring(0, text.length() - 1);
 		}
-		if(listener != null) listener.charRemoved();
-		requestRepaint();
+		textUpdated();
 	}
 	
 	// стиль
