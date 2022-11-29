@@ -131,6 +131,13 @@ public final class Keyboard implements KeyboardConstants {
 	}
 
 	/**
+	 * Инициализация с дефолтными настройками
+	 */
+	public static Keyboard getKeyboard() {
+		return new Keyboard(KEYBOARD_DEFAULT, false, 0, 0, null);
+	}
+
+	/**
 	 * Инициализация с дефолтной раскладкой
 	 * @param multiLine
 	 * @param screenWidth
@@ -275,6 +282,9 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private void layout() {
+		if(screenWidth == 0 || screenHeight == 0) {
+			return; 
+		}
 		keyStartY = 2;
 		keyEndY = 2;
 		int h = screenHeight / 10;
