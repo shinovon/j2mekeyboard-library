@@ -27,9 +27,6 @@ public final class Keyboard implements KeyboardConstants {
 	private int[] specs;
 	
 	private int[] layoutTypes;
-	
-	private static final int holdTime = 500;
-	private static final int repeatTime = 100;
 
 	private int[][][] widths;
 	private int[][][] positions;
@@ -47,7 +44,7 @@ public final class Keyboard implements KeyboardConstants {
 	private int lang;
 	private int spec;
 	
-	private boolean visible;
+	boolean visible;
 	private boolean keepShifted;
 	private boolean shifted;
 	
@@ -68,7 +65,7 @@ public final class Keyboard implements KeyboardConstants {
 	private int screenHeight;
 
 	private Thread repeatThread;
-	private Object pressLock = new Object();
+	Object pressLock = new Object();
 
 	private int keyTextY;
 	
@@ -95,36 +92,6 @@ public final class Keyboard implements KeyboardConstants {
 		this.multiLine = multiLine;
 		this.layoutPackRes = layoutPackRes == null ? DEFAULT_LAYOUT_PACK : layoutPackRes;
 		this.keyboardType = keyboardType;
-		repeatThread = new Thread("Key Repeat Thread") {
-			public void run() {
-				try {
-					int count = 0;
-					while(visible) {
-						if(pressed) {
-							if(count > 10) {
-								if(System.currentTimeMillis() - pt >= holdTime) {
-									repeatPress(px, py);
-									Thread.sleep(repeatTime);
-									requestRepaint();
-									continue;
-								}
-							} else {
-								count++;
-							}
-							if(dragged) requestRepaint();
-						} else {
-							count = 0;
-							synchronized(pressLock) {
-								pressLock.wait();
-							}
-						}
-						Thread.sleep(50);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		};
 		parseLayoutPack();
 		layout();
 	}
@@ -465,6 +432,7 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		visible = true;
 		try {
+			repeatThread = new KeyboardThread(this);
 			repeatThread.start();
 		} catch (Exception e) {
 		}
