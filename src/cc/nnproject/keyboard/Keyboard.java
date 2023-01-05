@@ -52,6 +52,8 @@ public final class Keyboard implements KeyboardConstants {
 	
 	private String text = "";
 	
+	private int size;
+	
 	private int keyboardType;
 	private boolean multiLine;
 	
@@ -329,6 +331,9 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param s
 	 */
 	public void setText(String s) {
+		if(size > 0 && s.length() > size) {
+			s = s.substring(0, size);
+		}
 		text = s;
 	}
 	
@@ -337,6 +342,12 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param s
 	 */
 	public void appendText(String s) {
+		if(text.length() >= size) return;
+		if(text.length()+s.length() >= size) {
+			text += s;
+			text = text.substring(0, size);
+			return;
+		}
 		text += s;
 	}
 	
@@ -346,6 +357,7 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param index
 	 */
 	public void insertText(String s, int index) {
+		if(text.length() >= size) return;
 		text = text.substring(0, index) + s + text.substring(index);
 	}
 	
@@ -734,6 +746,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 
 	private void type(char c) {
+		if(text.length() >= size) return;
 		if(shifted) {
 			c = Character.toUpperCase(c);
 			if(!keepShifted) shifted = false;
@@ -744,6 +757,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private void space() {
+		if(text.length() >= size) return;
 		if(listener != null && !listener.appendChar(' ')) return;
 		text += " ";
 		textUpdated();
@@ -884,6 +898,10 @@ public final class Keyboard implements KeyboardConstants {
 		if(hasQwertyLayouts) {
 			currentLayout = langsIdx[0];
 		}
+	}
+	
+	public void setSize(int size) {
+		this.size = size;
 	}
 	
 	void requestRepaint() {
