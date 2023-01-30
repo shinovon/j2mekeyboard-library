@@ -342,8 +342,8 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param s
 	 */
 	public void appendText(String s) {
-		if(text.length() >= size) return;
-		if(text.length()+s.length() >= size) {
+		if(size > 0 && text.length() >= size) return;
+		if(size > 0 && text.length()+s.length() >= size) {
 			text += s;
 			text = text.substring(0, size);
 			return;
@@ -357,7 +357,7 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param index
 	 */
 	public void insertText(String s, int index) {
-		if(text.length() >= size) return;
+		if(size > 0 && text.length() >= size) return;
 		text = text.substring(0, index) + s + text.substring(index);
 	}
 	
@@ -746,7 +746,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 
 	private void type(char c) {
-		if(text.length() >= size) return;
+		if(size > 0 && text.length() >= size) return;
 		if(shifted) {
 			c = Character.toUpperCase(c);
 			if(!keepShifted) shifted = false;
@@ -757,7 +757,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private void space() {
-		if(text.length() >= size) return;
+		if(size > 0 && text.length() >= size) return;
 		if(listener != null && !listener.appendChar(' ')) return;
 		text += " ";
 		textUpdated();
