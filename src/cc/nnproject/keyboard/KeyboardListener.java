@@ -28,8 +28,10 @@ public interface KeyboardListener {
 	public void done();
 	
 	/**
-	 * Запрос перерисовки, лучше всего это делать асинхронно
+	 * Запрос перерисовки, рекомендуется это делать асинхронно
 	 */
 	public void requestRepaint();
+
+	public void cancel();
 
 }

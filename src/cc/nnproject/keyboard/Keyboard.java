@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
 
@@ -65,6 +66,17 @@ public final class Keyboard implements KeyboardConstants {
 	
 	private int screenWidth;
 	private int screenHeight;
+	
+	private int[][][] key_layouts;
+	int lastKey;
+	int keyRepeatTicks = -1;
+	boolean keyPressed;
+	long kt;
+	private int physicalKeyboard;
+	private int[] keyVars;
+	private int keyVarIdx;
+	private char keyBuffer;
+	private int currentPhysicalLayout;
 
 	private Thread repeatThread;
 	Object pressLock = new Object();
@@ -87,13 +99,31 @@ public final class Keyboard implements KeyboardConstants {
 	private int fontHeight = font.getHeight();
 	private String layoutPackRes;
 	private boolean hasQwertyLayouts;
+
+	boolean hasRepeatEvents;
+	boolean hasPointerEvents;
+
+	private Canvas canvas;
 	
-	private Keyboard(int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
+	private Keyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		this.multiLine = multiLine;
 		this.layoutPackRes = layoutPackRes == null ? DEFAULT_LAYOUT_PACK : layoutPackRes;
 		this.keyboardType = keyboardType;
+		if(canvas != null) {
+			this.hasRepeatEvents = canvas.hasRepeatEvents();
+			this.hasPointerEvents = canvas.hasPointerEvents();
+			this.canvas = canvas;
+		}
+		String sysKeyboardType = System.getProperty("com.nokia.keyboard.type");
+		if(sysKeyboardType == null || sysKeyboardType.equalsIgnoreCase("PhoneKeypad")) {
+			physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
+		} else if(sysKeyboardType.equalsIgnoreCase("None")) {
+			physicalKeyboard = PHYSICAL_KEYBOARD_NONE;
+		} else {
+			physicalKeyboard = PHYSICAL_KEYBOARD_QWERTY;
+		}
 		parseLayoutPack();
 		layout();
 	}
@@ -101,8 +131,8 @@ public final class Keyboard implements KeyboardConstants {
 	/**
 	 * Инициализация с дефолтными настройками
 	 */
-	public static Keyboard getKeyboard() {
-		return new Keyboard(KEYBOARD_DEFAULT, false, 0, 0, null);
+	public static Keyboard getKeyboard(Canvas canvas) {
+		return new Keyboard(canvas, KEYBOARD_DEFAULT, false, 0, 0, null);
 	}
 
 	/**
@@ -111,8 +141,8 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param screenWidth
 	 * @param screenHeight
 	 */
-	public static Keyboard getKeyboard(boolean multiLine, int screenWidth, int screenHeight) {
-		return new Keyboard(KEYBOARD_DEFAULT, multiLine, screenWidth, screenHeight, null);
+	public static Keyboard getKeyboard(Canvas canvas, boolean multiLine, int screenWidth, int screenHeight) {
+		return new Keyboard(canvas, KEYBOARD_DEFAULT, multiLine, screenWidth, screenHeight, null);
 	}
 	
 	/**
@@ -122,8 +152,8 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param screenWidth
 	 * @param screenHeight
 	 */
-	public static Keyboard getKeyboard(int keyboardType, boolean multiLine, int screenWidth, int screenHeight) {
-		return new Keyboard(keyboardType, multiLine, screenWidth, screenHeight, null);
+	public static Keyboard getKeyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight) {
+		return new Keyboard(canvas, keyboardType, multiLine, screenWidth, screenHeight, null);
 	}
 
 	/**
@@ -134,8 +164,8 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param screenHeight
 	 * @param layoutPackRes
 	 */
-	public static Keyboard getKeyboard(int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
-		return new Keyboard(keyboardType, multiLine, screenWidth, screenHeight, layoutPackRes);
+	public static Keyboard getKeyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
+		return new Keyboard(canvas, keyboardType, multiLine, screenWidth, screenHeight, layoutPackRes);
 	}
 	
 	private void parseLayoutPack() {
@@ -179,6 +209,7 @@ public final class Keyboard implements KeyboardConstants {
 			arr = json.getArray("layouts");
 			i = arr.size();
 			layouts = new int[i][4][];
+			key_layouts = new int[i][10][];
 			layoutTypes = new int[i];
 			Enumeration e = arr.elements();
 			i = 0;
@@ -203,9 +234,11 @@ public final class Keyboard implements KeyboardConstants {
 					}
 				}
 				int[][] l = new int[4][];
+				int[][] o = new int[10][];
 				JSONArray a = (JSONArray) readJSONRes(j.getString("res"));
+				JSONArray t = a.getArray(0);
 				for(int k = 0; k < 4; k++) {
-					JSONArray b = a.getArray(k);
+					JSONArray b = t.getArray(k);
 					int n = b.size();
 					l[k] = new int[b.size()];
 					for(int p = 0; p < n; p++) {
@@ -213,6 +246,18 @@ public final class Keyboard implements KeyboardConstants {
 							l[k][p] = b.getInt(p);
 						} catch (Exception e2) {
 							l[k][p] = b.getString(p).charAt(0);
+						}
+					}
+				}
+				for(int k = 0; k < 10; k++) {
+					JSONArray b = t.getArray(k);
+					int n = b.size();
+					o[k] = new int[b.size()];
+					for(int p = 0; p < n; p++) {
+						try {
+							o[k][p] = b.getInt(p);
+						} catch (Exception e2) {
+							o[k][p] = b.getString(p).charAt(0);
 						}
 					}
 				}
@@ -471,6 +516,10 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public int paint(Graphics g, int screenWidth, int screenHeight) {
 		if(!visible) return 0;
+		if(!hasPointerEvents || physicalKeyboard == PHYSICAL_KEYBOARD_NONE) {
+			// здесь что-то будет
+			return 0;
+		}
 		// если размеры экрана изменились, то сделать релэйаут
 		if(this.screenWidth == 0 || screenWidth != this.screenWidth || screenHeight != this.screenHeight) {
 			this.screenWidth = screenWidth;
@@ -600,12 +649,124 @@ public final class Keyboard implements KeyboardConstants {
 			synchronized(pressLock) {
 				pressLock.notify();
 			}
-			if(drawButtons) requestRepaint();
+			if(drawButtons) _requestRepaint();
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean keyPressed(int key) {
+		switch(key) {
+		case -1:
+		case -2:
+		case -3:
+		case -4:
+		case -6:
+			return false;
+		case -5:
+		case -7:
+			keyPressed = true;
+			backspace();
+			_keyPressed(key);
+			return true;
+		default:
+			keyPressed = true;
+			handleKey(key, false);
+			_keyPressed(key);
+			return true;
+		}
+	}
+	
+	public boolean keyRepeated(int key) {
+		if(keyPressed) {
+			handleKey(key, true);
 			return true;
 		}
 		return false;
 	}
 
+	public boolean keyReleased(int key) {
+		if(keyPressed) {
+			keyPressed = false;
+			return true;
+		}
+		return false;
+	}
+	
+	private void _keyPressed(int key) {
+		lastKey = key;
+		kt = System.currentTimeMillis();
+		synchronized(pressLock) {
+			pressLock.notify();
+		}
+	}
+	
+	void _repeatKey() {
+		handleKey(lastKey, true);
+	}
+	
+	void _flushKeyBuffer() {
+		if(keyBuffer == 0) return;
+		type(keyBuffer);
+		keyRepeatTicks = keyVarIdx = keyBuffer = 0;
+	}
+	
+	private void handleKey(int key, boolean repeated) {
+		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD) {
+			if(repeated) {
+				if(key >= '0' && key <= '9') {
+					keyBuffer = (char) key;
+					_flushKeyBuffer();
+				} else if(key == -7) {
+					backspace();
+				}
+			} else {
+				if(key >= '0' && key <= '9') {
+					if(keyRepeatTicks > 0 && lastKey == key) {
+						keyBuffer = (char) keyVars[keyVarIdx+=1];
+					} else {
+						_flushKeyBuffer();
+						keyVars = key_layouts[currentPhysicalLayout][key-'0'];
+						keyVarIdx = 0;
+						keyBuffer = (char) keyVars[keyVarIdx];
+						keyRepeatTicks = KEY_REPEAT_TICKS;
+					}
+				} else if(key == '#'){
+					shiftKey();
+				} else if(key == -7) {
+					if(text.length() == 0) { // убирать фокус если нет текста
+						cancel();
+					} else {
+						backspace();
+					}
+				}
+			}
+		} else {
+			switch(key) {
+			case 8:
+				backspace();
+				return;
+			case -5:
+			case 13:
+			case 80:
+				enter();
+				return;
+			case 32:
+				space();
+				return;
+			default:
+				if(canvas != null) {
+					String keyName = canvas.getKeyName(key);
+					if(keyName.length() == 1) {
+						type(keyName.charAt(0));
+					}
+				} else {
+					type((char) key);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Обработка отпускания пальца
 	 * @return true если клава забрала эвент
@@ -636,7 +797,7 @@ public final class Keyboard implements KeyboardConstants {
 		return false;
 	}
 
-	void repeatPress(int x, int y) {
+	void _repeatPress(int x, int y) {
 		handleTap(x, y-Y, true);
 	}
 	
@@ -692,7 +853,7 @@ public final class Keyboard implements KeyboardConstants {
 		} else if(layoutTypes[currentLayout] == 1) {
 			currentLayout = langsIdx[lang];
 		}
-		requestRepaint();
+		_requestRepaint();
 	}
 	
 	private void langKey() {
@@ -704,7 +865,7 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		currentLayout = langsIdx[lang];
 		if(listener != null) listener.langChanged();
-		requestRepaint();
+		_requestRepaint();
 	}
 
 	// деление без остатка
@@ -737,12 +898,12 @@ public final class Keyboard implements KeyboardConstants {
 			keepShifted = false;
 			shifted = !shifted;
 		}
-		requestRepaint();
+		_requestRepaint();
 	}
 
 	private void textUpdated() {
 		if(listener != null) listener.textUpdated();
-		requestRepaint();
+		_requestRepaint();
 	}
 
 	private void type(char c) {
@@ -769,6 +930,11 @@ public final class Keyboard implements KeyboardConstants {
 			text = text.substring(0, text.length() - 1);
 		}
 		textUpdated();
+	}
+	
+	private void cancel() {
+		if(listener != null) listener.cancel();
+		hide();
 	}
 	
 	// стиль
@@ -904,7 +1070,7 @@ public final class Keyboard implements KeyboardConstants {
 		this.size = size;
 	}
 	
-	void requestRepaint() {
+	void _requestRepaint() {
 		if(listener != null) listener.requestRepaint();
 	}
 	

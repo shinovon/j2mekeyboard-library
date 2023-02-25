@@ -56,4 +56,11 @@ public interface KeyboardConstants {
 	public static final int KEY_BACKSPACE = 8;
 	public static final int KEY_RETURN = '\n';
 	public static final int KEY_SPACE = ' ';
+	
+
+	public static final int KEY_REPEAT_TICKS = 10;
+	
+	public static final int PHYSICAL_KEYBOARD_NONE = 0;
+	public static final int PHYSICAL_KEYBOARD_PHONE_KEYPAD = 1;
+	public static final int PHYSICAL_KEYBOARD_QWERTY = 2;
 }
