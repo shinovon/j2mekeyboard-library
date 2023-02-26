@@ -67,7 +67,7 @@ public final class Keyboard implements KeyboardConstants {
 	private int screenWidth;
 	private int screenHeight;
 	
-	private int[][][] key_layouts;
+	private int[][][] keyLayouts;
 	int lastKey;
 	int keyRepeatTicks = -1;
 	boolean keyPressed;
@@ -77,6 +77,7 @@ public final class Keyboard implements KeyboardConstants {
 	private int keyVarIdx;
 	private char keyBuffer;
 	private int currentPhysicalLayout;
+	private boolean keyWasRepeated;
 
 	private Thread repeatThread;
 	Object pressLock = new Object();
@@ -99,6 +100,8 @@ public final class Keyboard implements KeyboardConstants {
 	private int fontHeight = font.getHeight();
 	private String layoutPackRes;
 	private boolean hasQwertyLayouts;
+	private Font textFont = Font.getFont(0, 0, 8);
+	private int textFontHeight = textFont.getHeight();
 
 	boolean hasRepeatEvents;
 	boolean hasPointerEvents;
@@ -209,7 +212,7 @@ public final class Keyboard implements KeyboardConstants {
 			arr = json.getArray("layouts");
 			i = arr.size();
 			layouts = new int[i][4][];
-			key_layouts = new int[i][10][];
+			keyLayouts = new int[i][10][];
 			layoutTypes = new int[i];
 			Enumeration e = arr.elements();
 			i = 0;
@@ -249,17 +252,21 @@ public final class Keyboard implements KeyboardConstants {
 						}
 					}
 				}
-				for(int k = 0; k < 10; k++) {
-					JSONArray b = t.getArray(k);
-					int n = b.size();
-					o[k] = new int[b.size()];
-					for(int p = 0; p < n; p++) {
-						try {
-							o[k][p] = b.getInt(p);
-						} catch (Exception e2) {
-							o[k][p] = b.getString(p).charAt(0);
+				if(a.size() > 1) {
+					JSONObject s = a.getObject(1);
+					for(int k = 1; k < 10; k++) {
+						JSONArray b = s.getArray(Integer.toString(k));
+						int n = b.size();
+						o[k] = new int[b.size()];
+						for(int p = 0; p < n; p++) {
+							try {
+								o[k][p] = b.getInt(p);
+							} catch (Exception e2) {
+								o[k][p] = b.getString(p).charAt(0);
+							}
 						}
 					}
+					keyLayouts[i] = o;
 				}
 				layouts[i] = l;
 				i++;
@@ -542,6 +549,26 @@ public final class Keyboard implements KeyboardConstants {
 		g.translate(0, -Y);
 		return keyboardHeight;
 	}
+	
+	public void drawCaret(Graphics g, int caretX, int caretY) {
+		if(keyBuffer != 0) {
+			//XXX
+			char c = keyBuffer;
+			if(shifted) c = Character.toUpperCase(c);
+			int w = textFont.charWidth(c);
+			g.setColor(-1);
+			g.fillRect(caretX, caretY, w, textFontHeight);
+			g.setColor(0);
+			g.drawChar(c, caretX, caretY, 0);
+		}
+		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && !hasPointerEvents) {
+			int w = textFont.stringWidth("ABC");
+			g.setColor(0xaaaaaa);
+			g.fillRect(0, 0, w, textFontHeight);
+			g.setColor(0);
+			g.drawString(shifted ? keepShifted ? "ABC" : "Abc" : "abc", 0, 0, 0);
+		}
+	}
 
 	private void drawKeyButton(Graphics g, int x, int y, int w) {
 		if(!drawButtons) return;
@@ -687,6 +714,7 @@ public final class Keyboard implements KeyboardConstants {
 
 	public boolean keyReleased(int key) {
 		if(keyPressed) {
+			keyWasRepeated = false;
 			keyPressed = false;
 			return true;
 		}
@@ -712,28 +740,57 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private void handleKey(int key, boolean repeated) {
+		//XXX
 		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD) {
 			if(repeated) {
-				if(key >= '0' && key <= '9') {
-					keyBuffer = (char) key;
-					_flushKeyBuffer();
-				} else if(key == -7) {
+				if(key >= '1' && key <= '9') {
+					if(!keyWasRepeated) {
+						keyBuffer = (char) key;
+						_flushKeyBuffer();
+					}
+				} else if(key == -7 || key == 8) {
 					backspace();
+				} else if(key == '0') {
+					if(!keyWasRepeated) {
+						keyBuffer = '0';
+						_flushKeyBuffer();
+					}
 				}
+				keyWasRepeated = true;
 			} else {
-				if(key >= '0' && key <= '9') {
+				if(key >= '1' && key <= '9') {
 					if(keyRepeatTicks > 0 && lastKey == key) {
-						keyBuffer = (char) keyVars[keyVarIdx+=1];
+						if(keyVarIdx++ == keyVars.length-1) {
+							keyVarIdx = 0;
+						}
+						keyBuffer = (char) keyVars[keyVarIdx];
+						_requestRepaint();
 					} else {
 						_flushKeyBuffer();
-						keyVars = key_layouts[currentPhysicalLayout][key-'0'];
-						keyVarIdx = 0;
+						keyVars = keyLayouts[currentPhysicalLayout][key-'0'];
 						keyBuffer = (char) keyVars[keyVarIdx];
-						keyRepeatTicks = KEY_REPEAT_TICKS;
 					}
+					keyRepeatTicks = KEY_REPEAT_TICKS;
+				} else if(key == '0') {
+					keyVars = null;
+					if(keyRepeatTicks > 0 && lastKey == key) {
+						if(keyVarIdx++ == 2) {
+							keyVarIdx = 0;
+							keyBuffer = ' ';
+						} else if(keyVarIdx == 1) {
+							keyBuffer = '0';
+						} else {
+							keyBuffer = '\n';
+						}
+						_requestRepaint();
+					} else {
+						_flushKeyBuffer();
+						keyBuffer = ' ';
+					}
+					keyRepeatTicks = KEY_REPEAT_TICKS;
 				} else if(key == '#'){
 					shiftKey();
-				} else if(key == -7) {
+				} else if(key == -7 || key == 8) {
 					if(text.length() == 0) { // убирать фокус если нет текста
 						cancel();
 					} else {
@@ -925,9 +982,16 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private void backspace() {
+		if(keyBuffer != 0) {
+			keyBuffer = 0;
+			_requestRepaint();
+			return;
+		}
 		if(listener != null && !listener.removeChar()) return;
 		if(text.length() > 0) {
 			text = text.substring(0, text.length() - 1);
+		} else {
+			shifted = true;
 		}
 		textUpdated();
 	}
@@ -1023,11 +1087,21 @@ public final class Keyboard implements KeyboardConstants {
 	 * Изменить шрифт
 	 * @param font
 	 */
-	public void setFont(Font font) {
+	public void setKeyFont(Font font) {
 		this.font = font;
 		this.fontHeight = font.getHeight();
 		this.keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
 	}
+	
+	/**
+	 * Изменить шрифт набираемого текста
+	 * @param font
+	 */
+	public void setTextFont(Font font) {
+		this.textFont = font;
+		this.textFontHeight = font.getHeight();
+	}
+	
 	
 	/**
 	 * <p>Изменить доступные языки</p>

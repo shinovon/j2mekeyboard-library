@@ -42,16 +42,15 @@ class KeyboardThread extends Thread {
 					} else {
 						keyTicks++;
 					}
+				} else if(keyboard.keyRepeatTicks > 0) {
+					keyboard.keyRepeatTicks--;
+					if(keyboard.keyRepeatTicks == 0) {
+						keyboard._flushKeyBuffer();
+					}
 				} else {
 					touchTicks = 0;
 					synchronized(keyboard.pressLock) {
 						keyboard.pressLock.wait();
-					}
-				}
-				if(keyboard.keyRepeatTicks > 0) {
-					keyboard.keyRepeatTicks--;
-					if(keyboard.keyRepeatTicks == 0) {
-						keyboard._flushKeyBuffer();
 					}
 				}
 				Thread.sleep(50);
