@@ -590,7 +590,7 @@ public final class Keyboard implements KeyboardConstants {
 			}
 			*/
 		}
-		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && !hasPointerEvents) {
+		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT && !hasPointerEvents) {
 			int w = textFont.stringWidth("ABC");
 			g.setColor(0xaaaaaa);
 			g.fillRect(0, 0, w, textFontHeight);
