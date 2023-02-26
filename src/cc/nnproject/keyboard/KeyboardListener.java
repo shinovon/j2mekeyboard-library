@@ -34,4 +34,6 @@ public interface KeyboardListener {
 
 	public void cancel();
 
+	public void requestCaretRepaint();
+
 }

@@ -67,13 +67,13 @@ public final class Keyboard implements KeyboardConstants {
 	private int screenWidth;
 	private int screenHeight;
 	
-	private int[][][] keyLayouts;
+	private char[][][] keyLayouts;
 	int lastKey;
 	int keyRepeatTicks = -1;
 	boolean keyPressed;
 	long kt;
 	private int physicalKeyboard;
-	private int[] keyVars;
+	private char[] keyVars;
 	private int keyVarIdx;
 	private char keyBuffer;
 	private int currentPhysicalLayout;
@@ -91,6 +91,7 @@ public final class Keyboard implements KeyboardConstants {
 	private int keyButtonColor = DEFAULT_BUTTON_COLOR;
 	private int keyButtonHoverColor = DEFAULT_BUTTON_HOVER_COLOR;
 	private int keyButtonOutlineColor = DEFAULT_BUTTON_OUTLINE_COLOR;
+	private int caretColor = DEFAULT_CARET_COLOR;
 	private boolean drawButtons = DEFAULT_BUTTONS;
 	private boolean drawShadows = DEFAULT_TEXT_SHADOWS;
 	private boolean roundButtons = DEFAULT_ROUND_BUTTONS;
@@ -107,6 +108,8 @@ public final class Keyboard implements KeyboardConstants {
 	boolean hasPointerEvents;
 
 	private Canvas canvas;
+
+	public boolean caretFlash;
 	
 	private Keyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
 		this.screenWidth = screenWidth;
@@ -119,14 +122,30 @@ public final class Keyboard implements KeyboardConstants {
 			this.hasPointerEvents = canvas.hasPointerEvents();
 			this.canvas = canvas;
 		}
+		
+		// Physical keyboard checks
 		String sysKeyboardType = System.getProperty("com.nokia.keyboard.type");
-		if(sysKeyboardType == null || sysKeyboardType.equalsIgnoreCase("PhoneKeypad")) {
+		if(sysKeyboardType == null) {
 			physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
+			// Symbian 9.x check
+			if(System.getProperty("com.symbian.midp.serversocket.support") != null ||
+					System.getProperty("com.symbian.default.to.suite.icon") != null ||
+					(System.getProperty("microedition.platform") != null &&
+					System.getProperty("microedition.platform").indexOf("version=3.2") != -1)) {
+				if(screenWidth > screenHeight) {
+					physicalKeyboard = PHYSICAL_KEYBOARD_QWERTY;
+				} else {
+					physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
+				}
+			}
 		} else if(sysKeyboardType.equalsIgnoreCase("None")) {
 			physicalKeyboard = PHYSICAL_KEYBOARD_NONE;
+		} else if(sysKeyboardType.equalsIgnoreCase("PhoneKeypad")) {
+			physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
 		} else {
 			physicalKeyboard = PHYSICAL_KEYBOARD_QWERTY;
 		}
+		
 		parseLayoutPack();
 		layout();
 	}
@@ -136,6 +155,10 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public static Keyboard getKeyboard(Canvas canvas) {
 		return new Keyboard(canvas, KEYBOARD_DEFAULT, false, 0, 0, null);
+	}
+	
+	public static Keyboard getKeyboard(Canvas canvas, int keyboardType) {
+		return new Keyboard(canvas, keyboardType, false, 0, 0, null);
 	}
 
 	/**
@@ -212,7 +235,7 @@ public final class Keyboard implements KeyboardConstants {
 			arr = json.getArray("layouts");
 			i = arr.size();
 			layouts = new int[i][4][];
-			keyLayouts = new int[i][10][];
+			keyLayouts = new char[i][10][];
 			layoutTypes = new int[i];
 			Enumeration e = arr.elements();
 			i = 0;
@@ -237,7 +260,7 @@ public final class Keyboard implements KeyboardConstants {
 					}
 				}
 				int[][] l = new int[4][];
-				int[][] o = new int[10][];
+				char[][] o = new char[10][];
 				JSONArray a = (JSONArray) readJSONRes(j.getString("res"));
 				JSONArray t = a.getArray(0);
 				for(int k = 0; k < 4; k++) {
@@ -257,10 +280,10 @@ public final class Keyboard implements KeyboardConstants {
 					for(int k = 1; k < 10; k++) {
 						JSONArray b = s.getArray(Integer.toString(k));
 						int n = b.size();
-						o[k] = new int[b.size()];
+						o[k] = new char[b.size()];
 						for(int p = 0; p < n; p++) {
 							try {
-								o[k][p] = b.getInt(p);
+								o[k][p] = (char) b.getInt(p);
 							} catch (Exception e2) {
 								o[k][p] = b.getString(p).charAt(0);
 							}
@@ -522,11 +545,7 @@ public final class Keyboard implements KeyboardConstants {
 	 * @return Сколько высоты экрана забрало
 	 */
 	public int paint(Graphics g, int screenWidth, int screenHeight) {
-		if(!visible) return 0;
-		if(!hasPointerEvents || physicalKeyboard == PHYSICAL_KEYBOARD_NONE) {
-			// здесь что-то будет
-			return 0;
-		}
+		if(!visible || !hasPointerEvents) return 0;
 		// если размеры экрана изменились, то сделать релэйаут
 		if(this.screenWidth == 0 || screenWidth != this.screenWidth || screenHeight != this.screenHeight) {
 			this.screenWidth = screenWidth;
@@ -552,14 +571,24 @@ public final class Keyboard implements KeyboardConstants {
 	
 	public void drawCaret(Graphics g, int caretX, int caretY) {
 		if(keyBuffer != 0) {
-			//XXX
 			char c = keyBuffer;
 			if(shifted) c = Character.toUpperCase(c);
 			int w = textFont.charWidth(c);
-			g.setColor(-1);
+			g.setColor(caretColor);
 			g.fillRect(caretX, caretY, w, textFontHeight);
-			g.setColor(0);
+			g.setColor(~caretColor);
 			g.drawChar(c, caretX, caretY, 0);
+			/*
+			if(keyVars != null) {
+				w = textFont.charsWidth(keyVars, 0, keyVars.length)+1;
+				g.setColor(~caretColor);
+				g.fillRect(caretX, caretY-textFontHeight, w, textFontHeight);
+				g.setColor(caretColor);
+				g.drawRect(caretX, caretY-textFontHeight, w, textFontHeight);
+				g.setColor(caretColor);
+				g.drawChars(keyVars, 0, keyVars.length, caretX+1, caretY-textFontHeight, 0);
+			}
+			*/
 		}
 		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && !hasPointerEvents) {
 			int w = textFont.stringWidth("ABC");
@@ -567,6 +596,10 @@ public final class Keyboard implements KeyboardConstants {
 			g.fillRect(0, 0, w, textFontHeight);
 			g.setColor(0);
 			g.drawString(shifted ? keepShifted ? "ABC" : "Abc" : "abc", 0, 0, 0);
+		}
+		if(caretFlash) {
+			g.setColor(caretColor);
+			g.drawLine(caretX, caretY, caretX, caretY + textFontHeight);
 		}
 	}
 
@@ -690,12 +723,12 @@ public final class Keyboard implements KeyboardConstants {
 		case -4:
 		case -6:
 			return false;
-		case -5:
 		case -7:
 			keyPressed = true;
 			backspace();
 			_keyPressed(key);
 			return true;
+		case -5:
 		default:
 			keyPressed = true;
 			handleKey(key, false);
@@ -734,62 +767,112 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	void _flushKeyBuffer() {
-		if(keyBuffer == 0) return;
-		type(keyBuffer);
+		if(keyBuffer != 0) {
+			type(keyBuffer);
+		}
 		keyRepeatTicks = keyVarIdx = keyBuffer = 0;
 	}
 	
 	private void handleKey(int key, boolean repeated) {
-		//XXX
 		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD) {
 			if(repeated) {
 				if(key >= '1' && key <= '9') {
-					if(!keyWasRepeated) {
+					if(!keyWasRepeated || keyboardType == KEYBOARD_PHONE_NUMBER || keyboardType == KEYBOARD_NUMERIC || keyboardType == KEYBOARD_DECIMAL) {
 						keyBuffer = (char) key;
 						_flushKeyBuffer();
 					}
 				} else if(key == -7 || key == 8) {
 					backspace();
 				} else if(key == '0') {
-					if(!keyWasRepeated) {
-						keyBuffer = '0';
+					if(!keyWasRepeated || keyboardType == KEYBOARD_NUMERIC || keyboardType == KEYBOARD_DECIMAL) {
+						keyBuffer = keyboardType == KEYBOARD_PHONE_NUMBER ? '+' : '0';
 						_flushKeyBuffer();
 					}
 				}
 				keyWasRepeated = true;
 			} else {
 				if(key >= '1' && key <= '9') {
-					if(keyRepeatTicks > 0 && lastKey == key) {
-						if(keyVarIdx++ == keyVars.length-1) {
-							keyVarIdx = 0;
+					switch(keyboardType) {
+					case KEYBOARD_DEFAULT:
+						if(keyRepeatTicks > 0 && lastKey == key) {
+							if(keyVarIdx++ == keyVars.length-1) {
+								keyVarIdx = 0;
+							}
+							if(keyVars == null) return;
+							keyBuffer = (char) keyVars[keyVarIdx];
+						} else {
+							_flushKeyBuffer();
+							keyVars = keyLayouts[currentPhysicalLayout][key-'0'];
+							if(keyVars == null) return;
+							keyBuffer = (char) keyVars[keyVarIdx];
 						}
-						keyBuffer = (char) keyVars[keyVarIdx];
-						_requestRepaint();
-					} else {
+						break;
+					case KEYBOARD_PHONE_NUMBER:
+					case KEYBOARD_NUMERIC:
+					case KEYBOARD_DECIMAL:
+						keyBuffer = (char) key;
 						_flushKeyBuffer();
-						keyVars = keyLayouts[currentPhysicalLayout][key-'0'];
-						keyBuffer = (char) keyVars[keyVarIdx];
 					}
+					_requestRepaint();
 					keyRepeatTicks = KEY_REPEAT_TICKS;
 				} else if(key == '0') {
 					keyVars = null;
-					if(keyRepeatTicks > 0 && lastKey == key) {
-						if(keyVarIdx++ == 2) {
-							keyVarIdx = 0;
-							keyBuffer = ' ';
-						} else if(keyVarIdx == 1) {
-							keyBuffer = '0';
+					switch(keyboardType) {
+					case KEYBOARD_DEFAULT:
+						if(keyRepeatTicks > 0 && lastKey == key) {
+							if(keyVarIdx++ == 2) {
+								keyVarIdx = 0;
+								keyBuffer = ' ';
+							} else if(keyVarIdx == 1) {
+								keyBuffer = '0';
+							} else {
+								keyBuffer = '\n';
+							}
 						} else {
-							keyBuffer = '\n';
+							_flushKeyBuffer();
+							keyBuffer = ' ';
 						}
-						_requestRepaint();
-					} else {
+					case KEYBOARD_PHONE_NUMBER:
 						_flushKeyBuffer();
-						keyBuffer = ' ';
+						keyBuffer = '0';
+						break;
+					case KEYBOARD_NUMERIC:
+					case KEYBOARD_DECIMAL:
+						keyBuffer = (char) key;
+						_flushKeyBuffer();
 					}
+					_requestRepaint();
 					keyRepeatTicks = KEY_REPEAT_TICKS;
 				} else if(key == '#'){
-					shiftKey();
+					switch(keyboardType) {
+					case KEYBOARD_DEFAULT:
+						shiftKey();
+						break;
+					case KEYBOARD_PHONE_NUMBER:
+						_flushKeyBuffer();
+						type('#');
+						break;
+					case KEYBOARD_NUMERIC:
+						break;
+					case KEYBOARD_DECIMAL:
+						_flushKeyBuffer();
+						type('-');
+						break;
+					}
+				} else if(key == '*'){
+					switch(keyboardType) {
+					case KEYBOARD_DEFAULT:
+					case KEYBOARD_NUMERIC:
+						break;
+					case KEYBOARD_PHONE_NUMBER:
+						_flushKeyBuffer();
+						type('*');
+						break;
+					case KEYBOARD_DECIMAL:
+						_flushKeyBuffer();
+						type('.');
+						break;
+					}
 				} else if(key == -7 || key == 8) {
 					if(text.length() == 0) { // убирать фокус если нет текста
 						cancel();
@@ -984,10 +1067,14 @@ public final class Keyboard implements KeyboardConstants {
 	private void backspace() {
 		if(keyBuffer != 0) {
 			keyBuffer = 0;
+			_flushKeyBuffer();
 			_requestRepaint();
 			return;
 		}
-		if(listener != null && !listener.removeChar()) return;
+		if(listener != null && !listener.removeChar()) {
+			_requestRepaint();
+			return;
+		}
 		if(text.length() > 0) {
 			text = text.substring(0, text.length() - 1);
 		} else {
@@ -1050,6 +1137,10 @@ public final class Keyboard implements KeyboardConstants {
 	public void setTextShadowColor(int color) {	
 		this.textShadowColor = color;
 	}
+
+	public void setCaretColor(int color) {
+		this.caretColor = color;
+	}
 	
 	/**
 	 * Включить отображение кнопок
@@ -1102,7 +1193,6 @@ public final class Keyboard implements KeyboardConstants {
 		this.textFontHeight = font.getHeight();
 	}
 	
-	
 	/**
 	 * <p>Изменить доступные языки</p>
 	 * @param languages Можно пустой массив чтобы выбрать все доступные языки,<br>
@@ -1146,6 +1236,10 @@ public final class Keyboard implements KeyboardConstants {
 	
 	void _requestRepaint() {
 		if(listener != null) listener.requestRepaint();
+	}
+	
+	void _requestCaretRepaint() {
+		if(listener != null) listener.requestCaretRepaint();
 	}
 	
 	public static String[] getSupportedLanguages() {
