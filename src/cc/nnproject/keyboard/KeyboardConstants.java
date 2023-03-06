@@ -33,6 +33,7 @@ public interface KeyboardConstants {
 	public static final int DEFAULT_BUTTON_OUTLINE_COLOR = 0x131313;
 	public static final int DEFAULT_TEXT_COLOR = 0xCDCDCD;
 	public static final int DEFAULT_TEXT_SHADOW_COLOR = 0x2E2E2E;
+	public static final int DEFAULT_CARET_COLOR = 0xFFFFFF;
 	
 	public static final boolean DEFAULT_BUTTONS = true;
 	public static final boolean DEFAULT_TEXT_SHADOWS = false;
@@ -56,4 +57,11 @@ public interface KeyboardConstants {
 	public static final int KEY_BACKSPACE = 8;
 	public static final int KEY_RETURN = '\n';
 	public static final int KEY_SPACE = ' ';
+	
+
+	public static final int KEY_REPEAT_TICKS = 10;
+	
+	public static final int PHYSICAL_KEYBOARD_NONE = 0;
+	public static final int PHYSICAL_KEYBOARD_PHONE_KEYPAD = 1;
+	public static final int PHYSICAL_KEYBOARD_QWERTY = 2;
 }
