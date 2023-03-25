@@ -1137,7 +1137,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(text.length() > 0) {
 			text = text.substring(0, text.length() - 1);
 			caretPosition --;
-			if(text.length() == 1) {
+			if(caretPosition == 0 && (keyboardType != PHYSICAL_KEYBOARD_QWERTY || hasPointerEvents)) {
 				shifted = true;
 			}
 		}
