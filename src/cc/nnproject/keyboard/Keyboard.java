@@ -111,6 +111,8 @@ public final class Keyboard implements KeyboardConstants {
 
 	public boolean caretFlash;
 	
+	public int caretPosition;
+	
 	private Keyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
@@ -401,6 +403,10 @@ public final class Keyboard implements KeyboardConstants {
 		return text.length();
 	}
 	
+	public int getCaretPosition() {
+		return caretPosition;
+	}
+	
 	/**
 	 * Установить текст
 	 * @param s
@@ -409,6 +415,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(size > 0 && s.length() > size) {
 			s = s.substring(0, size);
 		}
+		caretPosition = s.length();
 		text = s;
 	}
 	
@@ -421,8 +428,10 @@ public final class Keyboard implements KeyboardConstants {
 		if(size > 0 && text.length()+s.length() >= size) {
 			text += s;
 			text = text.substring(0, size);
+			caretPosition = text.length();
 			return;
 		}
+		caretPosition += s.length();
 		text += s;
 	}
 	
@@ -434,6 +443,7 @@ public final class Keyboard implements KeyboardConstants {
 	public void insertText(String s, int index) {
 		if(size > 0 && text.length() >= size) return;
 		text = text.substring(0, index) + s + text.substring(index);
+		caretPosition += s.length();
 	}
 	
 	/**
@@ -442,6 +452,8 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public void removeChar(int index) {
 		text = text.substring(0, index) + text.substring(index + 1);
+
+		caretPosition --;
 	}
 	
 	/**
@@ -451,6 +463,7 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public void remove(int start, int end) {
 		text = text.substring(0, start) + text.substring(end + 1);
+		caretPosition -= end - start;
 	}
 
 	/**
@@ -458,6 +471,7 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public void clear() {
 		text = "";
+		caretPosition = 0;
 	}
 	
 	/**
@@ -701,7 +715,7 @@ public final class Keyboard implements KeyboardConstants {
 	 * @return true если клава забрала эвент
 	 */
 	public boolean pointerPressed(int x, int y) {
-		if(y >= Y && visible) {
+		if(y >= Y && visible && hasPointerEvents) {
 			pressed = true;
 			pt = System.currentTimeMillis();
 			px = x;
@@ -717,10 +731,14 @@ public final class Keyboard implements KeyboardConstants {
 	
 	public boolean keyPressed(int key) {
 		switch(key) {
-		case -1:
-		case -2:
 		case -3:
 		case -4:
+			keyPressed = true;
+			moveCaret(key == -3 ? -1 : 1);
+			_keyPressed(key);
+			return true;
+		case -1:
+		case -2:
 		case -6:
 			return false;
 		case -7:
@@ -737,8 +755,21 @@ public final class Keyboard implements KeyboardConstants {
 		}
 	}
 	
+	private void moveCaret(int i) {
+		caretFlash = true;
+		caretPosition += i;
+		if(caretPosition < 0) caretPosition = 0;
+		if(caretPosition > text.length()) caretPosition = text.length();
+	}
+
 	public boolean keyRepeated(int key) {
 		if(keyPressed) {
+			if(key == -3 || key == -4) {
+				keyPressed = true;
+				moveCaret(key == -3 ? -1 : 1);
+				_keyPressed(key);
+				return true;
+			}
 			handleKey(key, true);
 			return true;
 		}
@@ -874,10 +905,31 @@ public final class Keyboard implements KeyboardConstants {
 						break;
 					}
 				} else if(key == -7 || key == 8) {
+					_flushKeyBuffer();
 					if(text.length() == 0) { // убирать фокус если нет текста
 						cancel();
 					} else {
 						backspace();
+					}
+				} else {
+					_flushKeyBuffer();
+					switch(key) {
+					case 13:
+					case 80:
+						enter();
+						return;
+					case 32:
+						space();
+						return;
+					default:
+						if(canvas != null) {
+							String keyName = canvas.getKeyName(key);
+							if(keyName.length() == 1) {
+								type(keyName.charAt(0));
+							}
+						} else {
+							type((char) key);
+						}
 					}
 				}
 			}
@@ -1042,6 +1094,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 
 	private void textUpdated() {
+		if(caretPosition > text.length()) caretPosition = text.length();
 		if(listener != null) listener.textUpdated();
 		_requestRepaint();
 	}
@@ -1053,15 +1106,21 @@ public final class Keyboard implements KeyboardConstants {
 			if(!keepShifted) shifted = false;
 		}
 		if(listener != null && !listener.appendChar(c)) return;
-		text += c;
+		if(caretPosition != text.length()) {
+			String s = caretPosition == 0 ? "" : text.substring(0, caretPosition);
+			s += c;
+			s += text.substring(caretPosition);
+			if(s.length() > size && size > 0) s = s.substring(0, size);
+			text = s;
+		} else {
+			text += c;
+		}
+		caretPosition ++;
 		textUpdated();
 	}
 	
 	private void space() {
-		if(size > 0 && text.length() >= size) return;
-		if(listener != null && !listener.appendChar(' ')) return;
-		text += " ";
-		textUpdated();
+		type(' ');
 	}
 	
 	private void backspace() {
@@ -1077,9 +1136,12 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		if(text.length() > 0) {
 			text = text.substring(0, text.length() - 1);
-		} else {
-			shifted = true;
+			caretPosition --;
+			if(text.length() == 1) {
+				shifted = true;
+			}
 		}
+		caretFlash = true;
 		textUpdated();
 	}
 	
@@ -1262,6 +1324,12 @@ public final class Keyboard implements KeyboardConstants {
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
+	}
+
+	public void setCaretPostion(int i) {
+		caretPosition = i;
+		if(caretPosition < 0) caretPosition = 0;
+		if(caretPosition > text.length()) caretPosition = text.length();
 	}
 
 }
