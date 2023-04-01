@@ -21,18 +21,31 @@ class KeyboardThread extends Thread {
 			int flashTicks = 0;
 			while(keyboard.visible) {
 				if(keyboard.pressed) {
-					keyboard.caretFlash = false;
-					if(touchTicks > 10) {
-						if(System.currentTimeMillis() - keyboard.pt >= holdTime) {
-							keyboard._repeatPress(keyboard.px, keyboard.py);
-							Thread.sleep(repeatTime);
-							keyboard._requestRepaint();
-							continue;
+					if(keyboard.textBoxPressed) {
+						if(keyboard.dragged) {
+							keyboard.setCaretPosition(keyboard.px - keyboard.textBoxX, keyboard.py - keyboard.textBoxY);
+							keyboard.endPosition = keyboard.caretPosition;
+							keyboard.endX = keyboard.caretX;
+							keyboard.endRow = keyboard.caretRow;
+							keyboard.endCol = keyboard.caretCol;
+							keyboard.dragged = false;
+							keyboard._requestTextBoxRepaint();
 						}
 					} else {
-						touchTicks++;
+						if(touchTicks > 10) {
+							if(System.currentTimeMillis() - keyboard.pt >= holdTime) {
+								keyboard._repeatPress(keyboard.px, keyboard.py);
+								Thread.sleep(repeatTime);
+								keyboard._requestRepaint();
+								continue;
+							}
+						} else {
+							touchTicks++;
+						}
+						if(keyboard.dragged) {
+							keyboard._requestRepaint();
+						}
 					}
-					if(keyboard.dragged) keyboard._requestRepaint();
 				} else if(keyboard.keyPressed) {
 					keyboard.caretFlash = false;
 					if(keyTicks > 10 && !keyboard.hasRepeatEvents) {
@@ -56,7 +69,7 @@ class KeyboardThread extends Thread {
 					if(flashTicks-- <= 0) {
 						keyboard.caretFlash = !keyboard.caretFlash;
 						flashTicks = 10;
-						keyboard._requestCaretRepaint();
+						keyboard._requestTextBoxRepaint();
 					}
 					/*
 					synchronized(keyboard.pressLock) {

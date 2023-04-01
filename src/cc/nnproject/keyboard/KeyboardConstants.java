@@ -31,9 +31,11 @@ public interface KeyboardConstants {
 	public static final int DEFAULT_BUTTON_COLOR = 0x404040;
 	public static final int DEFAULT_BUTTON_HOVER_COLOR = 0x606060;
 	public static final int DEFAULT_BUTTON_OUTLINE_COLOR = 0x131313;
-	public static final int DEFAULT_TEXT_COLOR = 0xCDCDCD;
-	public static final int DEFAULT_TEXT_SHADOW_COLOR = 0x2E2E2E;
+	public static final int DEFAULT_KEY_TEXT_COLOR = 0xCDCDCD;
+	public static final int DEFAULT_KEY_TEXT_SHADOW_COLOR = 0x2E2E2E;
 	public static final int DEFAULT_CARET_COLOR = 0xFFFFFF;
+	public static final int DEFAULT_TEXT_COLOR = 0xFFFFFF;
+	public static final int DEFAULT_TEXT_HINT_COLOR = 0x5D5D5D;
 	
 	public static final boolean DEFAULT_BUTTONS = true;
 	public static final boolean DEFAULT_TEXT_SHADOWS = false;

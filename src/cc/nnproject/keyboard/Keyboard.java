@@ -86,8 +86,8 @@ public final class Keyboard implements KeyboardConstants {
 	
 	// стиль
 	private int bgColor = DEFAULT_BACKGROUND_COLOR;
-	private int textColor = DEFAULT_TEXT_COLOR;
-	private int textShadowColor = DEFAULT_TEXT_SHADOW_COLOR;
+	private int keyTextColor = DEFAULT_KEY_TEXT_COLOR;
+	private int keyTextShadowColor = DEFAULT_KEY_TEXT_SHADOW_COLOR;
 	private int keyButtonColor = DEFAULT_BUTTON_COLOR;
 	private int keyButtonHoverColor = DEFAULT_BUTTON_HOVER_COLOR;
 	private int keyButtonOutlineColor = DEFAULT_BUTTON_OUTLINE_COLOR;
@@ -96,6 +96,8 @@ public final class Keyboard implements KeyboardConstants {
 	private boolean drawShadows = DEFAULT_TEXT_SHADOWS;
 	private boolean roundButtons = DEFAULT_ROUND_BUTTONS;
 	private int keyButtonPadding = DEFAULT_BUTTON_PADDING;
+	private int textColor = DEFAULT_TEXT_COLOR;
+	private int textHintColor = DEFAULT_TEXT_HINT_COLOR;
 	
 	private Font font = Font.getFont(0, 0, 0);
 	private int fontHeight = font.getHeight();
@@ -108,10 +110,31 @@ public final class Keyboard implements KeyboardConstants {
 	boolean hasPointerEvents;
 
 	private Canvas canvas;
-
-	public boolean caretFlash;
 	
+	// текстбокс
+	protected int textBoxX;
+	protected int textBoxY;
+	private int textBoxWidth;
+	private int textBoxHeight;
+	private int removedTextWidth;
+	private String textHint = "";
 	public int caretPosition;
+	public boolean caretFlash;
+	private boolean textBoxShown;
+	protected boolean textBoxPressed;
+	protected int startPosition = -1;
+	protected int endPosition = -1;
+	protected int caretRow;
+	protected int caretX;
+	protected int caretCol;
+	protected int startX;
+	protected int startRow;
+	protected int endX;
+	protected int endRow;
+	protected int endCol;
+	protected int startCol;
+
+	private String[] abc;
 	
 	private Keyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
 		this.screenWidth = screenWidth;
@@ -239,6 +262,7 @@ public final class Keyboard implements KeyboardConstants {
 			layouts = new int[i][4][];
 			keyLayouts = new char[i][10][];
 			layoutTypes = new int[i];
+			abc = new String[i];
 			Enumeration e = arr.elements();
 			i = 0;
 			Vector specialsVector = new Vector();
@@ -261,6 +285,7 @@ public final class Keyboard implements KeyboardConstants {
 						specialsVector.addElement(new Integer(i));
 					}
 				}
+				abc[i] = j.getNullableString("abc");
 				int[][] l = new int[4][];
 				char[][] o = new char[10][];
 				JSONArray a = (JSONArray) readJSONRes(j.getString("res"));
@@ -462,8 +487,9 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param end
 	 */
 	public void remove(int start, int end) {
-		text = text.substring(0, start) + text.substring(end + 1);
+		text = text.substring(0, start) + text.substring(end);
 		caretPosition -= end - start;
+		if(caretPosition < 0) caretPosition = 0;
 	}
 
 	/**
@@ -583,7 +609,163 @@ public final class Keyboard implements KeyboardConstants {
 		return keyboardHeight;
 	}
 	
-	public void drawCaret(Graphics g, int caretX, int caretY) {
+	public void drawTextBox(Graphics g, int x, int y, int width, int height) {
+		textBoxShown = true;
+		this.textBoxX = x;
+		this.textBoxY = y;
+		this.textBoxWidth = width;
+		this.textBoxHeight = height;
+		g.setFont(textFont);
+		int textY = multiLine ? y : y + (height - textFont.getHeight()) >> 1;
+		String s = "";
+		boolean hint = text.length() == 0;
+		if(!hint) {
+			g.setColor(textColor);
+			s = text;
+		} else {
+			g.setColor(textHintColor);
+			s = textHint;
+		}
+		int th   = textFont.getHeight() + 2;
+		if(multiLine && !hint) {
+			String[] arr = getTextArray(s, textFont, width - 4);
+			int yo = 0;
+			while(th * arr.length > height + yo) {
+				yo += th;
+			}
+			int ty = -yo;
+			for(int i = 0; i < arr.length; i++) {
+				if(ty >= 0) {
+					g.drawString(arr[i], x + 2, ty + textY, 0);
+				}
+				ty += th;
+			}
+			int cx = x + 2 + caretX;
+			int cy = textY + (th * caretRow);
+			if(endPosition != -1) {
+				int strow = startRow;
+				int endrow = endRow;
+				int stx = startX;
+				int endx = endX;
+				int stcol = startCol;
+				int endcol = endCol;
+				if(startPosition > endPosition) {
+					strow = endRow;
+					endrow = startRow;
+					stx = endX;
+					endx = startX;
+					stcol = endCol;
+					endcol = startCol;
+				}
+				for(int i = strow; i <= endrow; i++) {
+					int lx = 0;
+					int substart = 0;
+					int subend = arr[i].length();
+					if(i == strow) {
+						lx = stx;
+						substart = stcol;
+					}
+					int lw = -1;
+					if(i == endrow) {
+						lw = endx - (i == strow ? stx : 0);
+						subend = endcol;
+					}
+					String ls = arr[i].substring(substart, subend);
+					if(lw < 0) {
+						lw = textFont.stringWidth(ls);
+					}
+					int ly = textY - yo + (th * i);
+					g.setColor(caretColor);
+					g.fillRect(x + 2 + lx, ly, lw, th);
+					g.setColor(~caretColor);
+					g.drawString(ls, x + 2 + lx, ly, 0);
+				}
+			}
+			drawCaret(g, cx, cy);
+		} else {
+			if(!hint) {
+				int ww = 0;
+				while(textFont.stringWidth(s) >= width - 4) {
+					ww += textFont.charWidth(s.charAt(0));
+					s = s.substring(1);
+				}
+				removedTextWidth = ww;
+			} else {
+				removedTextWidth = 0;
+			}
+			g.drawString(s, x + 2, textY, 0);
+			if(endPosition != -1) {
+				int start = Math.min(startPosition, endPosition);
+				int end = Math.max(startPosition, endPosition);
+				int startW = textFont.stringWidth(text.substring(0, start)) - removedTextWidth;
+				String selected = text.substring(start, end);
+				int selectedW = textFont.stringWidth(selected) - removedTextWidth;
+				g.setColor(caretColor);
+				g.fillRect(x + 2 + startW, textY, selectedW, th);
+				g.setColor(~caretColor);
+				g.drawString(selected, x + 2 + startW, textY, 0);
+			}
+			s = text;
+			if(s.length() > 0 && caretPosition != s.length()) {
+				s = s.substring(0, caretPosition);
+			}
+			drawCaret(g, x + textFont.stringWidth(s) + 2, textY);
+		}
+	}
+	
+	protected void setCaretPosition(int x, int y) {
+		x -= 2;
+		if(multiLine) {
+			String[] arr = getTextArray(text, textFont, textBoxWidth - 4);
+			int textHeight = textFont.getHeight() + 2;
+			int line = y / textHeight;
+			if(arr != null && line >= 0 && line < arr.length) {
+				int lineLength = arr[line].length();
+				int i = 0;
+				int j = 0;
+				caretCol = 0;
+
+				int k;
+				for (k = x; caretCol <= lineLength; ++caretCol) {
+					j = i;
+					if ((i = textFont.substringWidth(arr[line], 0, caretCol)) >= k) {
+						break;
+					}
+				}
+				int l = (i - j) / 2;
+				int m;
+				if (k >= j + l) {
+					m = i;
+				} else {
+					--caretCol;
+					m = j;
+				}
+				caretX = m;
+				caretRow = line;
+				caretCol = Math.min(Math.max(0, caretCol), lineLength);
+				int n = caretCol;
+				while (true) {
+					caretPosition = n;
+					if (line <= 0) {
+						return;
+					}
+					--line;
+					n = caretPosition + arr[line].length();
+				}
+			}
+			return;
+		}
+		int xx = x + removedTextWidth;
+		int i = 0;
+		for(i = text.length(); i > 0; i--) {
+			if(textFont.stringWidth(text.substring(0, i)) < xx) {
+				break;
+			}
+		}
+		setCaretPostion(i);
+	}
+	
+	private void drawCaret(Graphics g, int caretX, int caretY) {
 		if(keyBuffer != 0) {
 			char c = keyBuffer;
 			if(shifted) c = Character.toUpperCase(c);
@@ -604,16 +786,20 @@ public final class Keyboard implements KeyboardConstants {
 			}
 			*/
 		}
-		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT && !hasPointerEvents) {
-			int w = textFont.stringWidth("ABC");
-			g.setColor(0xaaaaaa);
-			g.fillRect(0, 0, w, textFontHeight);
-			g.setColor(0);
-			g.drawString(shifted ? keepShifted ? "ABC" : "Abc" : "abc", 0, 0, 0);
-		}
 		if(caretFlash) {
 			g.setColor(caretColor);
 			g.drawLine(caretX, caretY, caretX, caretY + textFontHeight);
+		}
+	}
+	
+	public void drawOverlay(Graphics g) {
+		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT && !hasPointerEvents) {
+			String s = abc[currentPhysicalLayout];
+			int w = textFont.stringWidth(s.toUpperCase());
+			g.setColor(0xaaaaaa);
+			g.fillRect(0, 0, w, textFontHeight);
+			g.setColor(0);
+			g.drawString(shifted ? keepShifted ? s.toUpperCase() : Character.toUpperCase(s.charAt(0)) + s.substring(1) : s, 0, 0, 0);
 		}
 	}
 
@@ -664,7 +850,7 @@ public final class Keyboard implements KeyboardConstants {
 			break;
 		case KEY_MODE:
 			b = true;
-			s = layoutTypes[currentLayout] == 0 ? "!#1" : "ABC";
+			s = layoutTypes[currentLayout] == 0 ? "!#1" : abc[currentLayout];
 			break;
 		case KEY_RETURN:
 			b = true;
@@ -685,26 +871,26 @@ public final class Keyboard implements KeyboardConstants {
 		if(b) {
 			x += (w - font.stringWidth(s)) >> 1;
 			if(drawShadows) {
-				g.setColor(textShadowColor);
+				g.setColor(keyTextShadowColor);
 				g.drawString(s, x+1, y+1, 0);
 				g.drawString(s, x+1, y-1, 0);
 				g.drawString(s, x-1, y+1, 0);
 				g.drawString(s, x-1, y-1, 0);
 			}
-			g.setColor(textColor);
+			g.setColor(keyTextColor);
 			g.drawString(s, x, y, 0);
 		} else if(key != 0) {
 			if(shifted && l < langs.length)
 				c = Character.toUpperCase(c);
 			x += (w - font.charWidth(c)) >> 1;
 			if(drawShadows) {
-				g.setColor(textShadowColor);
+				g.setColor(keyTextShadowColor);
 				g.drawChar(c, x+1, y+1, 0);
 				g.drawChar(c, x+1, y-1, 0);
 				g.drawChar(c, x-1, y+1, 0);
 				g.drawChar(c, x-1, y-1, 0);
 			}
-			g.setColor(textColor);
+			g.setColor(keyTextColor);
 			g.drawChar(c, x, y, 0);
 		}
 		return w;
@@ -726,6 +912,21 @@ public final class Keyboard implements KeyboardConstants {
 			if(drawButtons) _requestRepaint();
 			return true;
 		}
+		if(textBoxShown && visible && x > textBoxX && y > textBoxY && x < textBoxX + textBoxWidth && y < textBoxY + textBoxHeight) {
+			pressed = true;
+			pt = System.currentTimeMillis();
+			px = x;
+			py = y;
+			textBoxPressed = true;
+			setCaretPosition(x - textBoxX, y - textBoxY);
+			endPosition = -1;
+			startPosition = caretPosition;
+			startX = caretX;
+			startRow = caretRow;
+			startCol = caretCol;
+			_requestTextBoxRepaint();
+			return true;
+		}
 		return false;
 	}
 	
@@ -742,10 +943,6 @@ public final class Keyboard implements KeyboardConstants {
 		case -6:
 			return false;
 		case -7:
-			keyPressed = true;
-			backspace();
-			_keyPressed(key);
-			return true;
 		case -5:
 		default:
 			keyPressed = true;
@@ -758,8 +955,36 @@ public final class Keyboard implements KeyboardConstants {
 	private void moveCaret(int i) {
 		caretFlash = true;
 		caretPosition += i;
-		if(caretPosition < 0) caretPosition = 0;
-		if(caretPosition > text.length()) caretPosition = text.length();
+		if(caretPosition < 0) {
+			caretPosition = 0;
+			caretCol = 0;
+			caretX = 0;
+			caretRow = 0;
+		} else if(caretPosition > text.length()) {
+			caretPosition = text.length();
+		} else if(i == -1) {
+			char c = text.charAt(caretPosition);
+			if(c == '\n') {
+				caretRow--;
+				String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
+				caretCol = s.length();
+				caretX = textFont.stringWidth(s);
+			} else {
+				caretCol--;
+				caretX -= textFont.charWidth(c);
+			}
+		} else {
+			char c = text.charAt(caretPosition-1);
+			if(c == '\n') {
+				caretX = 0;
+				caretCol = 0;
+				caretRow++;
+			} else {
+				caretCol ++;
+				caretX += textFont.charWidth(c);
+			}
+		}
+		_requestTextBoxRepaint();
 	}
 
 	public boolean keyRepeated(int key) {
@@ -812,12 +1037,21 @@ public final class Keyboard implements KeyboardConstants {
 						keyBuffer = (char) key;
 						_flushKeyBuffer();
 					}
-				} else if(key == -7 || key == 8) {
+				} else if(key == -7 || key == '\b') {
 					backspace();
 				} else if(key == '0') {
 					if(!keyWasRepeated || keyboardType == KEYBOARD_NUMERIC || keyboardType == KEYBOARD_DECIMAL) {
 						keyBuffer = keyboardType == KEYBOARD_PHONE_NUMBER ? '+' : '0';
 						_flushKeyBuffer();
+					}
+				} else {
+					if(canvas != null) {
+						String keyName = canvas.getKeyName(key);
+						if(keyName.length() == 1) {
+							type(keyName.charAt(0));
+						}
+					} else {
+						type((char) key);
 					}
 				}
 				keyWasRepeated = true;
@@ -893,6 +1127,8 @@ public final class Keyboard implements KeyboardConstants {
 				} else if(key == '*'){
 					switch(keyboardType) {
 					case KEYBOARD_DEFAULT:
+						langKey();
+						break;
 					case KEYBOARD_NUMERIC:
 						break;
 					case KEYBOARD_PHONE_NUMBER:
@@ -904,7 +1140,7 @@ public final class Keyboard implements KeyboardConstants {
 						type('.');
 						break;
 					}
-				} else if(key == -7 || key == 8) {
+				} else if(key == -7 || key == '\b') {
 					_flushKeyBuffer();
 					if(text.length() == 0) { // убирать фокус если нет текста
 						cancel();
@@ -916,9 +1152,10 @@ public final class Keyboard implements KeyboardConstants {
 					switch(key) {
 					case 13:
 					case 80:
+					case -5:
 						enter();
 						return;
-					case 32:
+					case ' ':
 						space();
 						return;
 					default:
@@ -935,7 +1172,7 @@ public final class Keyboard implements KeyboardConstants {
 			}
 		} else {
 			switch(key) {
-			case 8:
+			case '\b':
 				backspace();
 				return;
 			case -5:
@@ -943,7 +1180,7 @@ public final class Keyboard implements KeyboardConstants {
 			case 80:
 				enter();
 				return;
-			case 32:
+			case ' ':
 				space();
 				return;
 			default:
@@ -965,9 +1202,19 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public boolean pointerReleased(int x, int y) {
 		if(pressed) {
+			if(textBoxPressed) {
+				setCaretPosition(x - textBoxX, y - textBoxY);
+				if(dragged) {
+					endPosition = caretPosition;
+					endX = caretX;
+					endRow = caretRow;
+					endCol = caretCol;
+				}
+			} else {
+				handleTap(x, y-Y, false);
+			}
 			pressed = false;
 			dragged = false;
-			handleTap(x, y-Y, false);
 			return true;
 		}
 		return false;
@@ -1055,6 +1302,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(lang >= l) {
 			lang = 0;
 		}
+		currentPhysicalLayout = langsIdx[lang];
 		currentLayout = langsIdx[lang];
 		if(listener != null) listener.langChanged();
 		_requestRepaint();
@@ -1106,6 +1354,16 @@ public final class Keyboard implements KeyboardConstants {
 			if(!keepShifted) shifted = false;
 		}
 		if(listener != null && !listener.appendChar(c)) return;
+		if(multiLine) {
+			if(c == '\n') {
+				caretX = 0;
+				caretCol = 0;
+				caretRow++;
+			} else {
+				caretCol ++;
+				caretX += textFont.charWidth(c);
+			}
+		}
 		if(caretPosition != text.length()) {
 			String s = caretPosition == 0 ? "" : text.substring(0, caretPosition);
 			s += c;
@@ -1135,8 +1393,45 @@ public final class Keyboard implements KeyboardConstants {
 			return;
 		}
 		if(text.length() > 0) {
-			text = text.substring(0, text.length() - 1);
-			caretPosition --;
+			if(endPosition != -1) {
+				int start = Math.min(startPosition, endPosition);
+				remove(start, Math.max(startPosition, endPosition));
+				endPosition = -1;
+				caretPosition = start;
+				textUpdated();
+				return;
+			}
+			if(caretPosition == text.length()) {
+				if(multiLine) {
+					char c = text.charAt(text.length() - 1);
+					if(c == '\n') {
+						caretRow--;
+						String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
+						caretCol = s.length();
+						caretX = textFont.stringWidth(s);
+					} else {
+						caretCol--;
+						caretX -= textFont.charWidth(c);
+					}
+				}
+				text = text.substring(0, text.length() - 1);
+				caretPosition --;
+			} else if(caretPosition > 0) {
+				if(multiLine) {
+					char c = text.charAt(caretPosition - 1);
+					if(c == '\n') {
+						caretRow--;
+						String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
+						caretCol = s.length();
+						caretX = textFont.stringWidth(s);
+					} else {
+						caretCol--;
+						caretX -= textFont.charWidth(c);
+					}
+				}
+				text = text.substring(0, caretPosition) + text.substring(caretPosition + 1);
+				caretPosition --;
+			}
 			if(caretPosition == 0 && (keyboardType != PHYSICAL_KEYBOARD_QWERTY || hasPointerEvents)) {
 				shifted = true;
 			}
@@ -1188,20 +1483,40 @@ public final class Keyboard implements KeyboardConstants {
 	 * Задать цвет текста
 	 * @param color
 	 */
-	public void setTextColor(int color) {	
-		this.textColor = color;
+	public void setKeyTextColor(int color) {	
+		this.keyTextColor = color;
 	}
 	
 	/**
 	 * Задать цвет обводки текста
 	 * @param color
 	 */
-	public void setTextShadowColor(int color) {	
-		this.textShadowColor = color;
+	public void setKeyTextShadowColor(int color) {	
+		this.keyTextShadowColor = color;
 	}
 
+	/**
+	 * Задать цвет мигающей полоски
+	 * @param color
+	 */
 	public void setCaretColor(int color) {
 		this.caretColor = color;
+	}
+
+	/**
+	 * Задать цвет текста в текст боксе
+	 * @param color
+	 */
+	public void setTextColor(int color) {
+		this.textColor = color;
+	}
+
+	/**
+	 * Задать цвет подсказки в текст боксе
+	 * @param color
+	 */
+	public void setTextHintColor(int color) {
+		this.textHintColor = color;
 	}
 	
 	/**
@@ -1255,6 +1570,10 @@ public final class Keyboard implements KeyboardConstants {
 		this.textFontHeight = font.getHeight();
 	}
 	
+	public void setTextHint(String textHint) {
+		this.textHint = textHint;
+	}
+	
 	/**
 	 * <p>Изменить доступные языки</p>
 	 * @param languages Можно пустой массив чтобы выбрать все доступные языки,<br>
@@ -1300,8 +1619,8 @@ public final class Keyboard implements KeyboardConstants {
 		if(listener != null) listener.requestRepaint();
 	}
 	
-	void _requestCaretRepaint() {
-		if(listener != null) listener.requestCaretRepaint();
+	void _requestTextBoxRepaint() {
+		if(listener != null) listener.requestTextBoxRepaint();
 	}
 	
 	public static String[] getSupportedLanguages() {
@@ -1327,9 +1646,108 @@ public final class Keyboard implements KeyboardConstants {
 	}
 
 	public void setCaretPostion(int i) {
+		caretFlash = true;
 		caretPosition = i;
 		if(caretPosition < 0) caretPosition = 0;
 		if(caretPosition > text.length()) caretPosition = text.length();
+	}
+	
+	public static String[] getTextArray(String s, Font font, int maxWidth) {
+    	if(s == null) return new String[0];
+       if(maxWidth > 0) {
+          boolean var4 = s.indexOf('\n') != -1;
+          if(font.stringWidth(s) <= maxWidth) {
+             return var4?split(s, '\n'):new String[]{s};
+          } else {
+             Vector list = new Vector();
+             if(!var4) {
+                splitToWidth(s, font, maxWidth, list);
+             } else {
+                char[] var7 = s.toCharArray();
+                int var8 = 0;
+
+                for(int var9 = 0; var9 < var7.length; ++var9) {
+                   if(var7[var9] == 10 || var9 == var7.length - 1) {
+                      String var11 = var9 == var7.length - 1?new String(var7, var8, var9 + 1 - var8):new String(var7, var8, var9 - var8);
+                      if(font.stringWidth(var11) <= maxWidth) {
+                         list.addElement(var11);
+                      } else {
+                         splitToWidth(var11, font, maxWidth, list);
+                      }
+
+                      var8 = var9 + 1;
+                   }
+                }
+             }
+
+ 			String[] r = new String[list.size()];
+ 			list.copyInto(r);
+ 			return r;
+          }
+       } else {
+          return new String[]{s};
+       }
+    }
+	
+    private static void splitToWidth(String s, Font font, int maxWidth, Vector list) {
+        char[] arr = s.toCharArray();
+        int k = 0;
+        int i = 0;
+        int w = 0;
+
+        while(true) {
+           while(i < arr.length) {
+              if((w += font.charWidth(arr[i])) > maxWidth) {
+                 int j = i;
+
+                 while(arr[j] != ' ') {
+                    --j;
+                    if(j < k) {
+                       j = i;
+                       break;
+                    }
+                 }
+
+                 list.addElement(new String(arr, k, j - k));
+                 k = arr[j] != ' ' && arr[j] != '\n' ?j:j + 1;
+                 w = 0;
+                 i = k;
+              } else {
+                 ++i;
+              }
+           }
+
+           list.addElement(new String(arr, k, i - k));
+           return;
+        }
+     }
+	
+	private static String[] split(String s, char c) {
+		char[] arr = s.toCharArray();
+		int i = 0;
+		Vector list = null;
+
+		for (int j = 0; j < arr.length; ++j) {
+			if (arr[j] == c) {
+				if (list == null) {
+					list = new Vector();
+				}
+
+				list.addElement(new String(arr, i, j - i));
+				i = j + 1;
+			}
+		}
+
+		if (list == null) {
+			return new String[] { s };
+		} else {
+			if (i < arr.length) {
+				list.addElement(new String(arr, i, arr.length - i));
+			}
+			String[] r = new String[list.size()];
+			list.copyInto(r);
+			return r;
+		}
 	}
 
 }

@@ -12,27 +12,32 @@
 				{
 					"res": "default_qwerty_en.json",
 					"type": "qwerty",
-					"lang": "en"
+					"lang": "en",
+					"abc": "abc"
 				},
 				{
 					"res": "default_qwerty_ru.json",
 					"type": "qwerty",
-					"lang": "ru"
+					"lang": "ru",
+					"abc": "абв"
 				},
 				{
 					"res": "default_qwerty_es.json",
 					"type": "qwerty",
-					"lang": "es"
+					"lang": "es",
+					"abc": "abc"
 				},
 				{
 					"res": "default_spec_1.json",
 					"type": "special",
-					"tab": 1
+					"tab": 1,
+					"abc": "!#1"
 				},
 				{
 					"res": "default_spec_2.json",
 					"type": "special",
-					"tab": 2
+					"tab": 2,
+					"abc": "!#1"
 				}
 			]
 		},
@@ -42,19 +47,28 @@
 		"numeric": {
 			"supported_languages": [],
 			"layouts": [
-				{"res": "numeric.json"}
+				{
+					"res": "numeric.json",
+					"abc": "123"
+				}
 			]
 		},
 		"decimal": {
 			"supported_languages": [],
 			"layouts": [
-				{"res": "decimal.json"}
+				{
+					"res": "decimal.json",
+					"abc": "123"
+				}
 			]
 		},
 		"phone_number": {
 			"supported_languages": [],
 			"layouts": [
-				{"res": "phone_number.json"}
+				{
+					"res": "phone_number.json",
+					"abc": "123"
+				}
 			]
 		}
 	}

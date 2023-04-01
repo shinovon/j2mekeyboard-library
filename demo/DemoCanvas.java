@@ -7,29 +7,18 @@ import cc.nnproject.keyboard.*;
 // демка, как примерно это будет выглядеть в реальной программе
 public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardConstants {
 	Keyboard keyboard;
+	private Font font;
 	
 	public DemoCanvas() {
 		setFullScreenMode(true);
-		keyboard = Keyboard.getKeyboard(false, getWidth(), getHeight());
-		
-		// стилизация, не обязятельно
-		keyboard.setBackgroundColor(0x000000);
-		keyboard.setButtonColor(0x404040);
-		keyboard.setButtonHoverColor(0x606060);
-		keyboard.setButtonOutlineColor(0x131313);
-		keyboard.setTextColor(0xCDCDCD);
-		keyboard.setTextShadowColor(0x2E2E2E);
-		keyboard.setButtons(true);
-		keyboard.setTextShadows(false);
-		
-		// начать с большой буквы
-		keyboard.setShifted(true);
-		// выбрать языки
-		keyboard.setLanguages(new String[] { "en", "ru" });
-		// поставить русский язык
-		keyboard.setLanguage("ru");
-		
+		keyboard = Keyboard.getKeyboard(this, true, getWidth(), getHeight());
+		font = Font.getDefaultFont();
+		keyboard.setTextFont(font);
 		keyboard.setListener(this);
+		keyboard.setTextHint("Что-то...");
+		keyboard.setTextColor(0);
+		keyboard.setTextHintColor(0x7F7F7F);
+		keyboard.setCaretColor(0);
 		keyboard.show();
 	}
 	
@@ -45,28 +34,45 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 		g.setColor(-1);
 		g.fillRect(0, 0, screenWidth, height);
 		g.setColor(0);
-		g.setFont(Font.getDefaultFont());
-		g.drawString(keyboard.getText(), 10, 10, 0);
+		keyboard.drawTextBox(g, 0, 0, screenWidth, height);
 	}
 	
 	public void pointerPressed(int x, int y) {
-		if(!keyboard.pointerPressed(x, y)) {
+		if(!keyboard.isVisible() || !keyboard.pointerPressed(x, y)) {
 			// чето делать здесь...
 		}
 	}
 	
 	public void pointerReleased(int x, int y) {
-		if(!keyboard.pointerReleased(x, y)) {
+		if(!keyboard.isVisible() || !keyboard.pointerReleased(x, y)) {
 			// чето делать здесь...
-			if(!keyboard.isVisible()) {
-				keyboard.show();
-				repaint();
-			}
+			keyboard.show();
+			repaint();
 		}
 	}
 	
 	public void pointerDragged(int x, int y) {
-		if(!keyboard.pointerDragged(x, y)) {
+		if(!keyboard.isVisible() || !keyboard.pointerDragged(x, y)) {
+			// чето делать здесь...
+		}
+	}
+	
+	public void keyPressed(int key) {
+		if(!keyboard.isVisible() || !keyboard.keyPressed(key)) {
+			// чето делать здесь...
+			keyboard.show();
+			repaint();
+		}
+	}
+	
+	public void keyReleased(int key) {
+		if(!keyboard.isVisible() || !keyboard.keyReleased(key)) {
+			// чето делать здесь...
+		}
+	}
+	
+	public void keyRepeated(int key) {
+		if(!keyboard.isVisible() || !keyboard.keyRepeated(key)) {
 			// чето делать здесь...
 		}
 	}
@@ -88,8 +94,23 @@ public class DemoCanvas extends Canvas implements KeyboardListener, KeyboardCons
 		keyboard.hide();
 		// чето делать здесь...
 	}
+
+	public void cancel() {
+		repaint();
+	}
 	
 	public void requestRepaint() {
+		repaint();
+	}
+
+	public boolean removeChar() {
+		return true;
+	}
+
+	public void textUpdated() {
+	}
+
+	public void requestTextBoxRepaint() {
 		repaint();
 	}
 
