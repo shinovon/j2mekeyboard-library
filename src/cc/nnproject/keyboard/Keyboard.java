@@ -1429,7 +1429,7 @@ public final class Keyboard implements KeyboardConstants {
 						caretX -= textFont.charWidth(c);
 					}
 				}
-				text = text.substring(0, caretPosition) + text.substring(caretPosition + 1);
+				text = text.substring(0, caretPosition - 1) + text.substring(caretPosition);
 				caretPosition --;
 			}
 			if(caretPosition == 0 && (keyboardType != PHYSICAL_KEYBOARD_QWERTY || hasPointerEvents)) {
