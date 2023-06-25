@@ -1037,7 +1037,7 @@ public final class Keyboard implements KeyboardConstants {
 						keyBuffer = (char) key;
 						_flushKeyBuffer();
 					}
-				} else if(key == -7 || key == '\b') {
+				} else if(key == -7 || key == -8 || key == '\b') {
 					backspace();
 				} else if(key == '0') {
 					if(!keyWasRepeated || keyboardType == KEYBOARD_NUMERIC || keyboardType == KEYBOARD_DECIMAL) {
@@ -1140,9 +1140,9 @@ public final class Keyboard implements KeyboardConstants {
 						type('.');
 						break;
 					}
-				} else if(key == -7 || key == '\b') {
+				} else if(key == -7 || key == -8 || key == '\b') {
 					_flushKeyBuffer();
-					if(text.length() == 0) { // убирать фокус если нет текста
+					if(key == -7 && text.length() == 0) { // убирать фокус если нет текста
 						cancel();
 					} else {
 						backspace();
