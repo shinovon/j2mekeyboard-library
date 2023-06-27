@@ -1097,6 +1097,7 @@ public final class Keyboard implements KeyboardConstants {
 							_flushKeyBuffer();
 							keyBuffer = ' ';
 						}
+						break;
 					case KEYBOARD_PHONE_NUMBER:
 						_flushKeyBuffer();
 						keyBuffer = '0';
