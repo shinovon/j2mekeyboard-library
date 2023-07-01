@@ -3,11 +3,12 @@
 	"languages": [
 		{"en": "English"},
 		{"es": "Español"},
-		{"ru": "Русский"}
+		{"ru": "Русский"},
+		{"ar": "العربية"}
 	],
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru", "es"],
+			"supported_languages": ["en", "ru", "es", "ar"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
@@ -26,6 +27,12 @@
 					"type": "qwerty",
 					"lang": "es",
 					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_ar.json",
+					"type": "qwerty",
+					"lang": "ar",
+					"abc": "اب"
 				},
 				{
 					"res": "default_spec_1.json",
