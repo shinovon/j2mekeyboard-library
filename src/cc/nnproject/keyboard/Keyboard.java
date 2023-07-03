@@ -112,27 +112,27 @@ public final class Keyboard implements KeyboardConstants {
 	private Canvas canvas;
 	
 	// текстбокс
-	int textBoxX;
-	int textBoxY;
+	protected int textBoxX;
+	protected int textBoxY;
 	private int textBoxWidth;
 	private int textBoxHeight;
 	private int removedTextWidth;
 	private String textHint = "";
-	int caretPosition;
-	boolean caretFlash;
+	public int caretPosition;
+	public boolean caretFlash;
 	private boolean textBoxShown;
-	boolean textBoxPressed;
-	private int startPosition = -1;
-	int endPosition = -1;
-	int caretRow;
-	int caretX;
-	int caretCol;
-	private int startX;
-	private int startRow;
-	int endX;
-	int endRow;
-	int endCol;
-	private int startCol;
+	protected boolean textBoxPressed;
+	protected int startPosition = -1;
+	protected int endPosition = -1;
+	protected int caretRow;
+	protected int caretX;
+	protected int caretCol;
+	protected int startX;
+	protected int startRow;
+	protected int endX;
+	protected int endRow;
+	protected int endCol;
+	protected int startCol;
 
 	private String[] abc;
 	
@@ -626,7 +626,7 @@ public final class Keyboard implements KeyboardConstants {
 			g.setColor(textHintColor);
 			s = textHint;
 		}
-		int th = textFont.getHeight() + 2;
+		int th   = textFont.getHeight() + 2;
 		if(multiLine && !hint) {
 			String[] arr = getTextArray(s, textFont, width - 4);
 			int yo = 0;
@@ -795,12 +795,11 @@ public final class Keyboard implements KeyboardConstants {
 	public void drawOverlay(Graphics g) {
 		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT && !hasPointerEvents) {
 			String s = abc[currentPhysicalLayout];
-			String l = langs[currentPhysicalLayout];
 			int w = textFont.stringWidth(s.toUpperCase());
 			g.setColor(0xaaaaaa);
 			g.fillRect(0, 0, w, textFontHeight);
 			g.setColor(0);
-			g.drawString(l != null ? (l.toUpperCase() + (shifted ? "#" : "")) : shifted ? keepShifted ? s.toUpperCase() : Character.toUpperCase(s.charAt(0)) + s.substring(1) : s, 0, 0, 0);
+			g.drawString(shifted ? keepShifted ? s.toUpperCase() : Character.toUpperCase(s.charAt(0)) + s.substring(1) : s, 0, 0, 0);
 		}
 	}
 
@@ -1098,7 +1097,6 @@ public final class Keyboard implements KeyboardConstants {
 							_flushKeyBuffer();
 							keyBuffer = ' ';
 						}
-						break;
 					case KEYBOARD_PHONE_NUMBER:
 						_flushKeyBuffer();
 						keyBuffer = '0';
@@ -1654,77 +1652,75 @@ public final class Keyboard implements KeyboardConstants {
 		if(caretPosition > text.length()) caretPosition = text.length();
 	}
 	
-	private static String[] getTextArray(String s, Font font, int maxWidth) {
-		if (s == null)
-			return new String[0];
-		if (maxWidth > 0) {
-			boolean var4 = s.indexOf('\n') != -1;
-			if (font.stringWidth(s) <= maxWidth) {
-				return var4 ? split(s, '\n') : new String[] { s };
-			} else {
-				Vector list = new Vector();
-				if (!var4) {
-					splitToWidth(s, font, maxWidth, list);
-				} else {
-					char[] var7 = s.toCharArray();
-					int var8 = 0;
+	public static String[] getTextArray(String s, Font font, int maxWidth) {
+    	if(s == null) return new String[0];
+       if(maxWidth > 0) {
+          boolean var4 = s.indexOf('\n') != -1;
+          if(font.stringWidth(s) <= maxWidth) {
+             return var4?split(s, '\n'):new String[]{s};
+          } else {
+             Vector list = new Vector();
+             if(!var4) {
+                splitToWidth(s, font, maxWidth, list);
+             } else {
+                char[] var7 = s.toCharArray();
+                int var8 = 0;
 
-					for (int var9 = 0; var9 < var7.length; ++var9) {
-						if (var7[var9] == 10 || var9 == var7.length - 1) {
-							String var11 = var9 == var7.length - 1 ? new String(var7, var8, var9 + 1 - var8)
-									: new String(var7, var8, var9 - var8);
-							if (font.stringWidth(var11) <= maxWidth) {
-								list.addElement(var11);
-							} else {
-								splitToWidth(var11, font, maxWidth, list);
-							}
+                for(int var9 = 0; var9 < var7.length; ++var9) {
+                   if(var7[var9] == 10 || var9 == var7.length - 1) {
+                      String var11 = var9 == var7.length - 1?new String(var7, var8, var9 + 1 - var8):new String(var7, var8, var9 - var8);
+                      if(font.stringWidth(var11) <= maxWidth) {
+                         list.addElement(var11);
+                      } else {
+                         splitToWidth(var11, font, maxWidth, list);
+                      }
 
-							var8 = var9 + 1;
-						}
-					}
-				}
+                      var8 = var9 + 1;
+                   }
+                }
+             }
 
-				String[] r = new String[list.size()];
-				list.copyInto(r);
-				return r;
-			}
-		} else {
-			return new String[] { s };
-		}
-	}
+ 			String[] r = new String[list.size()];
+ 			list.copyInto(r);
+ 			return r;
+          }
+       } else {
+          return new String[]{s};
+       }
+    }
+	
+    private static void splitToWidth(String s, Font font, int maxWidth, Vector list) {
+        char[] arr = s.toCharArray();
+        int k = 0;
+        int i = 0;
+        int w = 0;
 
-	private static void splitToWidth(String s, Font font, int maxWidth, Vector list) {
-		char[] arr = s.toCharArray();
-		int k = 0;
-		int i = 0;
-		int w = 0;
+        while(true) {
+           while(i < arr.length) {
+              if((w += font.charWidth(arr[i])) > maxWidth) {
+                 int j = i;
 
-		while (true) {
-			while (i < arr.length) {
-				if ((w += font.charWidth(arr[i])) > maxWidth) {
-					int j = i;
+                 while(arr[j] != ' ') {
+                    --j;
+                    if(j < k) {
+                       j = i;
+                       break;
+                    }
+                 }
 
-					while (arr[j] != ' ') {
-						--j;
-						if (j < k) {
-							j = i;
-							break;
-						}
-					}
+                 list.addElement(new String(arr, k, j - k));
+                 k = arr[j] != ' ' && arr[j] != '\n' ?j:j + 1;
+                 w = 0;
+                 i = k;
+              } else {
+                 ++i;
+              }
+           }
 
-					list.addElement(new String(arr, k, j - k));
-					k = arr[j] != ' ' && arr[j] != '\n' ? j : j + 1;
-					w = 0;
-					i = k;
-				} else {
-					++i;
-				}
-			}
-
-			list.addElement(new String(arr, k, i - k));
-			return;
-		}
-	}
+           list.addElement(new String(arr, k, i - k));
+           return;
+        }
+     }
 	
 	private static String[] split(String s, char c) {
 		char[] arr = s.toCharArray();
