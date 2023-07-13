@@ -437,6 +437,9 @@ public final class Keyboard implements KeyboardConstants {
 	 * @param s
 	 */
 	public void setText(String s) {
+		// clear selection
+		startPosition = -1;
+		endPosition = -1;
 		if(size > 0 && s.length() > size) {
 			s = s.substring(0, size);
 		}
