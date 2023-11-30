@@ -475,12 +475,11 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	/**
-	 * Убрать символ из текста
+	 * Убрать один символ из текста
 	 * @param index
 	 */
 	public void removeChar(int index) {
 		text = text.substring(0, index) + text.substring(index + 1);
-
 		caretPosition --;
 	}
 	
@@ -1215,6 +1214,7 @@ public final class Keyboard implements KeyboardConstants {
 					endRow = caretRow;
 					endCol = caretCol;
 				}
+				textBoxPressed = false;
 			} else {
 				handleTap(x, y-Y, false);
 			}
@@ -1315,8 +1315,7 @@ public final class Keyboard implements KeyboardConstants {
 
 	// деление без остатка
 	private int div(int i, int j) {
-		double d = i;
-		d /= j;
+		double d = i / (double) j;
 		return (int)(d - d % 1);
 	}
 
@@ -1402,7 +1401,7 @@ public final class Keyboard implements KeyboardConstants {
 				int start = Math.min(startPosition, endPosition);
 				remove(start, Math.max(startPosition, endPosition));
 				endPosition = -1;
-				caretPosition = start;
+				startPosition = caretPosition = start;
 				textUpdated();
 				return;
 			}
