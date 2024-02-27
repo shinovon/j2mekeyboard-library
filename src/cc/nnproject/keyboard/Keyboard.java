@@ -295,10 +295,11 @@ public final class Keyboard implements KeyboardConstants {
 					int n = b.size();
 					l[k] = new int[b.size()];
 					for(int p = 0; p < n; p++) {
-						try {
-							l[k][p] = b.getInt(p);
-						} catch (Exception e2) {
-							l[k][p] = b.getString(p).charAt(0);
+						Object c = b.get(p);
+						if(c instanceof String) {
+							l[k][p] = ((String) c).charAt(0);
+						} else if(c instanceof Integer) {
+							l[k][p] = ((Integer) c).intValue();
 						}
 					}
 				}
@@ -309,10 +310,11 @@ public final class Keyboard implements KeyboardConstants {
 						int n = b.size();
 						o[k] = new char[b.size()];
 						for(int p = 0; p < n; p++) {
-							try {
-								o[k][p] = (char) b.getInt(p);
-							} catch (Exception e2) {
-								o[k][p] = b.getString(p).charAt(0);
+							Object c = b.get(p);
+							if(c instanceof String) {
+								o[k][p] = ((String) c).charAt(0);
+							} else if(c instanceof Integer) {
+								o[k][p] = (char) ((Integer) c).intValue();
 							}
 						}
 					}
