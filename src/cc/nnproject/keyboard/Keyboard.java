@@ -939,9 +939,8 @@ public final class Keyboard implements KeyboardConstants {
 		switch(key) {
 		case -3:
 		case -4:
-			keyPressed = true;
-			moveCaret(key == -3 ? -1 : 1);
-			_keyPressed(key);
+			if(keyPressed = moveCaret(key == -3 ? -1 : 1))
+				_keyPressed(key);
 			return true;
 		case -1:
 		case -2:
@@ -950,26 +949,31 @@ public final class Keyboard implements KeyboardConstants {
 		case -7:
 		case -5:
 		default:
-			keyPressed = true;
-			handleKey(key, false);
-			_keyPressed(key);
+			if(keyPressed = handleKey(key, false))
+				_keyPressed(key);
 			return true;
 		}
 	}
 	
-	private void moveCaret(int i) {
+	private boolean moveCaret(int i) {
 		caretFlash = true;
+		if(keyBuffer != 0) {
+			_flushKeyBuffer();
+			return true;
+		}
 		caretPosition += i;
 		if(caretPosition < 0) {
 			caretPosition = 0;
 			caretCol = 0;
 			caretX = 0;
 			caretRow = 0;
+			return false;
 		} else if(caretPosition > text.length()) {
 			caretPosition = text.length();
+			return false;
 		} else if(i == -1) {
 			char c = text.charAt(caretPosition);
-			if(c == '\n') {
+			if(multiLine && c == '\n') {
 				caretRow--;
 				String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
 				caretCol = s.length();
@@ -980,7 +984,7 @@ public final class Keyboard implements KeyboardConstants {
 			}
 		} else {
 			char c = text.charAt(caretPosition-1);
-			if(c == '\n') {
+			if(multiLine && c == '\n') {
 				caretX = 0;
 				caretCol = 0;
 				caretRow++;
@@ -990,14 +994,14 @@ public final class Keyboard implements KeyboardConstants {
 			}
 		}
 		_requestTextBoxRepaint();
+		return true;
 	}
 
 	public boolean keyRepeated(int key) {
 		if(keyPressed) {
 			if(key == -3 || key == -4) {
-				keyPressed = true;
-				moveCaret(key == -3 ? -1 : 1);
-				_keyPressed(key);
+				if(keyPressed = moveCaret(key == -3 ? -1 : 1))
+					_keyPressed(key);
 				return true;
 			}
 			handleKey(key, true);
@@ -1034,7 +1038,7 @@ public final class Keyboard implements KeyboardConstants {
 		keyRepeatTicks = keyVarIdx = keyBuffer = 0;
 	}
 	
-	private void handleKey(int key, boolean repeated) {
+	private boolean handleKey(int key, boolean repeated) {
 		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD) {
 			if(repeated) {
 				if(key >= '1' && key <= '9') {
@@ -1068,12 +1072,12 @@ public final class Keyboard implements KeyboardConstants {
 							if(keyVarIdx++ == keyVars.length-1) {
 								keyVarIdx = 0;
 							}
-							if(keyVars == null) return;
+							if(keyVars == null) return true;
 							keyBuffer = (char) keyVars[keyVarIdx];
 						} else {
 							_flushKeyBuffer();
 							keyVars = keyLayouts[currentPhysicalLayout][key-'0'];
-							if(keyVars == null) return;
+							if(keyVars == null) return true;
 							keyBuffer = (char) keyVars[keyVarIdx];
 						}
 						break;
@@ -1148,8 +1152,9 @@ public final class Keyboard implements KeyboardConstants {
 					}
 				} else if(key == -7 || key == -8 || key == '\b') {
 					_flushKeyBuffer();
-					if(key == -7 && text.length() == 0) { // убирать фокус если нет текста
-						cancel();
+					if(text.length() == 0) {
+//						cancel();
+						return false;
 					} else {
 						backspace();
 					}
@@ -1160,10 +1165,10 @@ public final class Keyboard implements KeyboardConstants {
 					case 80:
 					case -5:
 						enter();
-						return;
+						return true;
 					case ' ':
 						space();
-						return;
+						return true;
 					default:
 						if(canvas != null) {
 							String keyName = canvas.getKeyName(key);
@@ -1180,15 +1185,15 @@ public final class Keyboard implements KeyboardConstants {
 			switch(key) {
 			case '\b':
 				backspace();
-				return;
+				return true;
 			case -5:
 			case 13:
 			case 80:
 				enter();
-				return;
+				return true;
 			case ' ':
 				space();
-				return;
+				return true;
 			default:
 				if(canvas != null) {
 					String keyName = canvas.getKeyName(key);
@@ -1200,6 +1205,7 @@ public final class Keyboard implements KeyboardConstants {
 				}
 			}
 		}
+		return true;
 	}
 	
 	/**
@@ -1446,7 +1452,7 @@ public final class Keyboard implements KeyboardConstants {
 		textUpdated();
 	}
 	
-	private void cancel() {
+	void cancel() {
 		if(listener != null) listener.cancel();
 		hide();
 	}
