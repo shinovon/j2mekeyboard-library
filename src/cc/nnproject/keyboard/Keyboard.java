@@ -713,7 +713,7 @@ public final class Keyboard implements KeyboardConstants {
 			if(s.length() > 0 && caretPosition != s.length()) {
 				s = s.substring(0, caretPosition);
 			}
-			drawCaret(g, x + textFont.stringWidth(s) + 2, textY);
+			drawCaret(g, x + textFont.stringWidth(s) + 2 - removedTextWidth, textY);
 		}
 	}
 	
