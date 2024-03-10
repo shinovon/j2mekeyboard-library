@@ -24,7 +24,7 @@ class KeyboardThread extends Thread {
 					if(keyboard.textBoxPressed) {
 						if(keyboard.dragged) {
 							keyboard.setCaretPosition(keyboard.px - keyboard.textBoxX, keyboard.py - keyboard.textBoxY);
-							keyboard.endPosition = keyboard.caretPosition;
+							keyboard.selectionEnd = keyboard.caretPosition;
 							keyboard.endX = keyboard.caretX;
 							keyboard.endRow = keyboard.caretRow;
 							keyboard.endCol = keyboard.caretCol;

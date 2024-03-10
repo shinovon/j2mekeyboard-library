@@ -72,12 +72,16 @@ public final class Keyboard implements KeyboardConstants {
 	int keyRepeatTicks = -1;
 	boolean keyPressed;
 	long kt;
-	private int physicalKeyboard;
+	private int physicalType;
 	private char[] keyVars;
 	private int keyVarIdx;
 	private char keyBuffer;
 	private int currentPhysicalLayout;
 	private boolean keyWasRepeated;
+	private int[] keysHeld = new int[10];
+	private int keysHeldCount;
+	private boolean holdingShift;
+	private boolean wasHoldingShift;
 
 	private Thread repeatThread;
 	Object pressLock = new Object();
@@ -122,8 +126,8 @@ public final class Keyboard implements KeyboardConstants {
 	boolean caretFlash;
 	private boolean textBoxShown;
 	boolean textBoxPressed;
-	private int startPosition = -1;
-	int endPosition = -1;
+	private int selectionStart = -1;
+	int selectionEnd = -1;
 	int caretRow;
 	int caretX;
 	int caretCol;
@@ -151,24 +155,24 @@ public final class Keyboard implements KeyboardConstants {
 		// Physical keyboard checks
 		String sysKeyboardType = System.getProperty("com.nokia.keyboard.type");
 		if(sysKeyboardType == null) {
-			physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
+			physicalType = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
 			// Symbian 9.x check
 			if(System.getProperty("com.symbian.midp.serversocket.support") != null ||
 					System.getProperty("com.symbian.default.to.suite.icon") != null ||
 					(System.getProperty("microedition.platform") != null &&
 					System.getProperty("microedition.platform").indexOf("version=3.2") != -1)) {
 				if(screenWidth > screenHeight) {
-					physicalKeyboard = PHYSICAL_KEYBOARD_QWERTY;
+					physicalType = PHYSICAL_KEYBOARD_QWERTY;
 				} else {
-					physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
+					physicalType = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
 				}
 			}
 		} else if(sysKeyboardType.equalsIgnoreCase("None")) {
-			physicalKeyboard = PHYSICAL_KEYBOARD_NONE;
+			physicalType = PHYSICAL_KEYBOARD_NONE;
 		} else if(sysKeyboardType.equalsIgnoreCase("PhoneKeypad")) {
-			physicalKeyboard = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
+			physicalType = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
 		} else {
-			physicalKeyboard = PHYSICAL_KEYBOARD_QWERTY;
+			physicalType = PHYSICAL_KEYBOARD_QWERTY;
 		}
 		
 		parseLayoutPack();
@@ -440,8 +444,8 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public void setText(String s) {
 		// clear selection
-		startPosition = -1;
-		endPosition = -1;
+		selectionStart = -1;
+		selectionEnd = -1;
 		if(size > 0 && s.length() > size) {
 			s = s.substring(0, size);
 		}
@@ -646,14 +650,14 @@ public final class Keyboard implements KeyboardConstants {
 			}
 			int cx = x + 2 + caretX;
 			int cy = textY + (th * caretRow);
-			if(endPosition != -1) {
+			if(selectionEnd != -1) {
 				int strow = startRow;
 				int endrow = endRow;
 				int stx = startX;
 				int endx = endX;
 				int stcol = startCol;
 				int endcol = endCol;
-				if(startPosition > endPosition) {
+				if(selectionStart > selectionEnd) {
 					strow = endRow;
 					endrow = startRow;
 					stx = endX;
@@ -698,16 +702,16 @@ public final class Keyboard implements KeyboardConstants {
 				removedTextWidth = 0;
 			}
 			g.drawString(s, x + 2, textY, 0);
-			if(endPosition != -1) {
-				int start = Math.min(startPosition, endPosition);
-				int end = Math.max(startPosition, endPosition);
-				int startW = textFont.stringWidth(text.substring(0, start)) - removedTextWidth;
+			if(selectionEnd != -1) {
+				int start = Math.min(selectionStart, selectionEnd);
+				int end = Math.max(selectionStart, selectionEnd);
+				int startX = textFont.stringWidth(text.substring(0, start)) - removedTextWidth;
 				String selected = text.substring(start, end);
-				int selectedW = textFont.stringWidth(selected) - removedTextWidth;
+				int selectedW = textFont.stringWidth(selected);
 				g.setColor(caretColor);
-				g.fillRect(x + 2 + startW, textY, selectedW, th);
+				g.fillRect(x + 2 + startX, textY, selectedW, th);
 				g.setColor(~caretColor);
-				g.drawString(selected, x + 2 + startW, textY, 0);
+				g.drawString(selected, x + 2 + startX, textY, 0);
 			}
 			s = text;
 			if(s.length() > 0 && caretPosition != s.length()) {
@@ -762,7 +766,7 @@ public final class Keyboard implements KeyboardConstants {
 		int xx = x + removedTextWidth;
 		int i = 0;
 		for(i = text.length(); i > 0; i--) {
-			if(textFont.stringWidth(text.substring(0, i)) < xx) {
+			if(textFont.stringWidth(text.substring(0, i-1)) + (textFont.charWidth(text.charAt(i-1)) >> 1) + 1 < xx) {
 				break;
 			}
 		}
@@ -797,7 +801,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	public void drawOverlay(Graphics g) {
-		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT && !hasPointerEvents) {
+		if(physicalType == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT && !hasPointerEvents) {
 			String s = abc[currentPhysicalLayout];
 			String l = langs[currentPhysicalLayout];
 			int w = textFont.stringWidth(s.toUpperCase());
@@ -924,8 +928,8 @@ public final class Keyboard implements KeyboardConstants {
 			py = y;
 			textBoxPressed = true;
 			setCaretPosition(x - textBoxX, y - textBoxY);
-			endPosition = -1;
-			startPosition = caretPosition;
+			selectionEnd = -1;
+			selectionStart = caretPosition;
 			startX = caretX;
 			startRow = caretRow;
 			startCol = caretCol;
@@ -955,10 +959,16 @@ public final class Keyboard implements KeyboardConstants {
 		}
 	}
 	
-	private boolean moveCaret(int i) {
+	private synchronized boolean moveCaret(int i) {
 		caretFlash = true;
 		if(keyBuffer != 0) {
 			_flushKeyBuffer();
+			return true;
+		}
+		if(!holdingShift && selectionEnd != -1) {
+			caretPosition = i == -1 ? Math.min(selectionStart, selectionEnd) : Math.max(selectionStart, selectionEnd);
+			selectionEnd = -1;
+			_requestTextBoxRepaint();
 			return true;
 		}
 		caretPosition += i;
@@ -989,9 +999,17 @@ public final class Keyboard implements KeyboardConstants {
 				caretCol = 0;
 				caretRow++;
 			} else {
-				caretCol ++;
+				caretCol++;
 				caretX += textFont.charWidth(c);
 			}
+		}
+		if(holdingShift) {
+			if(selectionEnd == -1) {
+				selectionStart = (selectionEnd = caretPosition) - i;
+			} else {
+				selectionEnd = caretPosition;
+			}
+			wasHoldingShift = true;
 		}
 		_requestTextBoxRepaint();
 		return true;
@@ -999,10 +1017,16 @@ public final class Keyboard implements KeyboardConstants {
 
 	public boolean keyRepeated(int key) {
 		if(keyPressed) {
-			if(key == -3 || key == -4) {
-				if(keyPressed = moveCaret(key == -3 ? -1 : 1))
-					_keyPressed(key);
-				return true;
+			synchronized(this) {
+				if(key == -3 || key == -4) {
+					if(keyPressed = moveCaret(key == -3 ? -1 : 1))
+						_keyPressed(key);
+					return true;
+				}
+				int i = 0;
+				int k = 0;
+				while(i < keysHeldCount && (k = keysHeld[i++]) != 0);
+				if(k != key) return false;
 			}
 			handleKey(key, true);
 			return true;
@@ -1010,25 +1034,57 @@ public final class Keyboard implements KeyboardConstants {
 		return false;
 	}
 
-	public boolean keyReleased(int key) {
+	public synchronized boolean keyReleased(int key) {
 		if(keyPressed) {
-			keyWasRepeated = false;
-			keyPressed = false;
-			return true;
+			if(key == '#' && physicalType == PHYSICAL_KEYBOARD_PHONE_KEYPAD && keyboardType == KEYBOARD_DEFAULT) {
+				if(!wasHoldingShift) {
+					shiftKey();
+				}
+				holdingShift = false;
+			}
+			int i = -1;
+			while(++i < keysHeldCount) {
+				int k;
+				if((k = keysHeld[i]) == 0) return false;
+				if(k != key) continue;
+				keysHeldCount--;
+				int s;
+				if((s = keysHeldCount - i) > 0)
+					System.arraycopy(keysHeld, i + 1, keysHeld, i, s);
+				keysHeld[keysHeldCount] = 0;
+				if(keysHeldCount == 0) {
+					keyPressed = keyWasRepeated = false;
+				}
+				return true;
+			}
 		}
 		return false;
 	}
 	
-	private void _keyPressed(int key) {
+	private synchronized void _keyPressed(int key) {
 		lastKey = key;
 		kt = System.currentTimeMillis();
+		if(keysHeldCount == keysHeld.length) {
+			keysHeld[0] = keysHeldCount = 0;
+		} else {
+			add: {
+				int i = 0;
+				int k;
+				while(i < keysHeldCount) {
+					if((k = keysHeld[i++]) == 0) break;
+					if(k == key) break add;
+				}
+				keysHeld[keysHeldCount++] = key;
+			}
+		}
 		synchronized(pressLock) {
 			pressLock.notify();
 		}
 	}
 	
-	void _repeatKey() {
-		handleKey(lastKey, true);
+	synchronized void _repeatKey() {
+		if(keysHeldCount > 1) return;
+		handleKey(keysHeld[keysHeldCount - 1], true);
 	}
 	
 	void _flushKeyBuffer() {
@@ -1039,7 +1095,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private boolean handleKey(int key, boolean repeated) {
-		if(physicalKeyboard == PHYSICAL_KEYBOARD_PHONE_KEYPAD) {
+		if(physicalType == PHYSICAL_KEYBOARD_PHONE_KEYPAD) {
 			if(repeated) {
 				if(key >= '1' && key <= '9') {
 					if(!keyWasRepeated || keyboardType == KEYBOARD_PHONE_NUMBER || keyboardType == KEYBOARD_NUMERIC || keyboardType == KEYBOARD_DECIMAL) {
@@ -1053,7 +1109,9 @@ public final class Keyboard implements KeyboardConstants {
 						keyBuffer = keyboardType == KEYBOARD_PHONE_NUMBER ? '+' : '0';
 						_flushKeyBuffer();
 					}
-				} else {
+				} else if(key == '#') {
+					wasHoldingShift = holdingShift = true;
+				} else if(key != '*') {
 					if(canvas != null) {
 						String keyName = canvas.getKeyName(key);
 						if(keyName.length() == 1) {
@@ -1121,7 +1179,9 @@ public final class Keyboard implements KeyboardConstants {
 				} else if(key == '#'){
 					switch(keyboardType) {
 					case KEYBOARD_DEFAULT:
-						shiftKey();
+						wasHoldingShift = false;
+						holdingShift = true;
+//						shiftKey();
 						break;
 					case KEYBOARD_PHONE_NUMBER:
 						_flushKeyBuffer();
@@ -1217,7 +1277,7 @@ public final class Keyboard implements KeyboardConstants {
 			if(textBoxPressed) {
 				setCaretPosition(x - textBoxX, y - textBoxY);
 				if(dragged) {
-					endPosition = caretPosition;
+					selectionEnd = caretPosition;
 					endX = caretX;
 					endRow = caretRow;
 					endCol = caretCol;
@@ -1366,6 +1426,12 @@ public final class Keyboard implements KeyboardConstants {
 			if(!keepShifted) shifted = false;
 		}
 		if(listener != null && !listener.appendChar(c)) return;
+		if(selectionEnd != -1) {
+			int start = Math.min(selectionStart, selectionEnd);
+			remove(start, Math.max(selectionStart, selectionEnd));
+			selectionEnd = -1;
+			selectionStart = caretPosition = start;
+		}
 		if(multiLine) {
 			if(c == '\n') {
 				caretX = 0;
@@ -1405,11 +1471,11 @@ public final class Keyboard implements KeyboardConstants {
 			return;
 		}
 		if(text.length() > 0) {
-			if(endPosition != -1) {
-				int start = Math.min(startPosition, endPosition);
-				remove(start, Math.max(startPosition, endPosition));
-				endPosition = -1;
-				startPosition = caretPosition = start;
+			if(selectionEnd != -1) {
+				int start = Math.min(selectionStart, selectionEnd);
+				remove(start, Math.max(selectionStart, selectionEnd));
+				selectionEnd = -1;
+				selectionStart = caretPosition = start;
 				textUpdated();
 				return;
 			}
@@ -1754,14 +1820,13 @@ public final class Keyboard implements KeyboardConstants {
 
 		if (list == null) {
 			return new String[] { s };
-		} else {
-			if (i < arr.length) {
-				list.addElement(new String(arr, i, arr.length - i));
-			}
-			String[] r = new String[list.size()];
-			list.copyInto(r);
-			return r;
 		}
+		if (i < arr.length) {
+			list.addElement(new String(arr, i, arr.length - i));
+		}
+		String[] r = new String[list.size()];
+		list.copyInto(r);
+		return r;
 	}
 
 }
