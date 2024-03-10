@@ -808,7 +808,7 @@ public final class Keyboard implements KeyboardConstants {
 			g.setColor(0xaaaaaa);
 			g.fillRect(0, 0, w, textFontHeight);
 			g.setColor(0);
-			g.drawString(l != null ? (l.toUpperCase() + (shifted ? "#" : "")) : shifted ? keepShifted ? s.toUpperCase() : Character.toUpperCase(s.charAt(0)) + s.substring(1) : s, 0, 0, 0);
+			g.drawString(l != null ? (l.toUpperCase() + (shifted ? (keepShifted ? "!" : "#") : "")) : shifted ? keepShifted ? s.toUpperCase() : Character.toUpperCase(s.charAt(0)) + s.substring(1) : s, 0, 0, 0);
 		}
 	}
 
@@ -1728,6 +1728,10 @@ public final class Keyboard implements KeyboardConstants {
 		caretPosition = i;
 		if(caretPosition < 0) caretPosition = 0;
 		if(caretPosition > text.length()) caretPosition = text.length();
+	}
+	
+	public void setPhysicalKeyboardType(int physicalKeyboardType) {
+		this.physicalType = physicalKeyboardType;
 	}
 	
 	private static String[] getTextArray(String s, Font font, int maxWidth) {
