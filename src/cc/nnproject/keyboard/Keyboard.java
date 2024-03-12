@@ -1284,7 +1284,7 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		currentPhysicalLayout = langsIdx[lang];
 		currentLayout = langsIdx[lang];
-		if(listener != null) listener.langChanged();
+		if(listener != null) listener.onKeyboardLanguageChanged();
 		_requestRepaint();
 	}
 
@@ -1293,7 +1293,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(multiLine) {
 			type('\n');
 		} else {
-			if(listener != null) listener.done();
+			if(listener != null) listener.onKeyboardDone();
 		}
 		textUpdated();
 	}
@@ -1316,7 +1316,7 @@ public final class Keyboard implements KeyboardConstants {
 
 	private void textUpdated() {
 		if(caretPosition > text.length()) caretPosition = text.length();
-		if(listener != null) listener.textUpdated();
+		if(listener != null) listener.onKeyboardTextUpdated();
 		_requestRepaint();
 	}
 
@@ -1326,7 +1326,7 @@ public final class Keyboard implements KeyboardConstants {
 			c = Character.toUpperCase(c);
 			if(!keepShifted) shifted = false;
 		}
-		if(listener != null && !listener.appendChar(c)) return;
+		if(listener != null && !listener.onKeyboardType(c)) return;
 		if(selectionEnd != -1) {
 			int start = Math.min(selectionStart, selectionEnd);
 			remove(start, Math.max(selectionStart, selectionEnd));
@@ -1367,7 +1367,7 @@ public final class Keyboard implements KeyboardConstants {
 			_requestRepaint();
 			return;
 		}
-		if(listener != null && !listener.removeChar()) {
+		if(listener != null && !listener.onKeyboardBackspace()) {
 			_requestRepaint();
 			return;
 		}
@@ -1420,7 +1420,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	void cancel() {
-		if(listener != null) listener.cancel();
+		if(listener != null) listener.onKeyboardCancel();
 		hide();
 	}
 	
@@ -1477,11 +1477,11 @@ public final class Keyboard implements KeyboardConstants {
 	}
 
 	void _requestRepaint() {
-		if(listener != null) listener.requestRepaint();
+		if(listener != null) listener.onKeyboardRepaintRequested();
 	}
 	
 	void _requestTextBoxRepaint() {
-		if(listener != null) listener.requestTextBoxRepaint();
+		if(listener != null) listener.onTextBoxRepaintRequested();
 	}
 	
 	private void drawCaret(Graphics g, int caretX, int caretY) {

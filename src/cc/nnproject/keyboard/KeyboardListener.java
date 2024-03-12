@@ -5,35 +5,34 @@ public interface KeyboardListener {
 	/**
 	 * Эвент нажатия на клавишу, действие можно отменить возвратив false
 	 */
-	public boolean appendChar(char c);
+	public boolean onKeyboardType(char c);
 	
 	/**
 	 * Эвент нажатия на бэкспейс, действие можно отменить возвратив false
 	 */
-	public boolean removeChar();
+	public boolean onKeyboardBackspace();
 	
 	/**
 	 * Эвент изменения языка
 	 */
-	public void langChanged();
+	public void onKeyboardLanguageChanged();
 
 	/**
 	 * Эвент обновления текста
 	 */
-	public void textUpdated();
+	public void onKeyboardTextUpdated();
 	
 	/**
 	 * Эвент нажатия на OK при выключенном многострочном режиме
 	 */
-	public void done();
+	public void onKeyboardDone();
+	public void onKeyboardCancel();
 	
 	/**
 	 * Запрос перерисовки, рекомендуется это делать асинхронно
 	 */
-	public void requestRepaint();
+	public void onKeyboardRepaintRequested();
 
-	public void cancel();
-
-	public void requestTextBoxRepaint();
+	public void onTextBoxRepaintRequested();
 
 }
