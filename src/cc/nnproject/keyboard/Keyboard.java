@@ -641,7 +641,7 @@ public final class Keyboard implements KeyboardConstants {
 			if(drawButtons) _requestRepaint();
 			return true;
 		}
-		if(textBoxShown && x > textBoxX && y > textBoxY && x < textBoxX + textBoxWidth && y < textBoxY + textBoxHeight) {
+		if(textBoxShown && visible && x > textBoxX && y > textBoxY && x < textBoxX + textBoxWidth && y < textBoxY + textBoxHeight) {
 			pressed = true;
 			pt = System.currentTimeMillis();
 			px = x;
@@ -677,8 +677,7 @@ public final class Keyboard implements KeyboardConstants {
 			} else {
 				handleTap(x, y-Y, false);
 			}
-			pressed = false;
-			dragged = false;
+			dragged = pressed = false;
 			return true;
 		}
 		return false;
@@ -1161,8 +1160,7 @@ public final class Keyboard implements KeyboardConstants {
 				} else if(key == -7 || key == -8 || key == '\b') {
 					_flushKeyBuffer();
 					if(text.length() == 0) {
-//						cancel();
-						return false;
+						return key != -7;
 					} else {
 						backspace();
 					}
