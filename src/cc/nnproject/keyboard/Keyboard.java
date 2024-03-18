@@ -1050,7 +1050,7 @@ public final class Keyboard implements KeyboardConstants {
 						_flushKeyBuffer();
 					}
 				} else if(key == -7 || key == -8 || key == '\b') {
-					backspace();
+					backspace(false);
 				} else if(key == '0') {
 					if(!keyWasRepeated || keyboardType == KEYBOARD_NUMERIC || keyboardType == KEYBOARD_DECIMAL) {
 						keyBuffer = keyboardType == KEYBOARD_PHONE_NUMBER ? '+' : '0';
@@ -1058,7 +1058,7 @@ public final class Keyboard implements KeyboardConstants {
 					}
 				} else if(key == '#') {
 					wasHoldingShift = holdingShift = true;
-				} else if(key != '*') {
+				} else if(key != '*' && key >= 32) {
 					if(canvas != null) {
 						String keyName = canvas.getKeyName(key);
 						if(keyName.length() == 1) {
@@ -1069,6 +1069,7 @@ public final class Keyboard implements KeyboardConstants {
 					}
 				}
 				keyWasRepeated = true;
+				return true;
 			} else {
 				if(key >= '1' && key <= '9') {
 					switch(keyboardType) {
@@ -1094,7 +1095,10 @@ public final class Keyboard implements KeyboardConstants {
 					}
 					_requestRepaint();
 					keyRepeatTicks = KEY_REPEAT_TICKS;
-				} else if(key == '0') {
+					return true;
+				}
+				switch(key) {
+				case '0':
 					keyVars = null;
 					switch(keyboardType) {
 					case KEYBOARD_DEFAULT:
@@ -1123,7 +1127,8 @@ public final class Keyboard implements KeyboardConstants {
 					}
 					_requestRepaint();
 					keyRepeatTicks = KEY_REPEAT_TICKS;
-				} else if(key == '#'){
+					return true;
+				case '#':
 					switch(keyboardType) {
 					case KEYBOARD_DEFAULT:
 						wasHoldingShift = false;
@@ -1141,7 +1146,8 @@ public final class Keyboard implements KeyboardConstants {
 						type('-');
 						break;
 					}
-				} else if(key == '*'){
+					return true;
+				case '*':
 					switch(keyboardType) {
 					case KEYBOARD_DEFAULT:
 						langKey();
@@ -1157,25 +1163,30 @@ public final class Keyboard implements KeyboardConstants {
 						type('.');
 						break;
 					}
-				} else if(key == -7 || key == -8 || key == '\b') {
+					return true;
+				}
+				_flushKeyBuffer();
+				switch(key) {
+				case -7:
+				case -8:
+				case '\b':
 					_flushKeyBuffer();
 					if(text.length() == 0) {
 						return key != -7;
 					} else {
-						backspace();
+						backspace(false);
 					}
-				} else {
-					_flushKeyBuffer();
-					switch(key) {
-					case 13:
-					case 80:
-					case -5:
-						enter();
-						return true;
-					case ' ':
-						space();
-						return true;
-					default:
+					return true;
+				case 13:
+				case 80:
+				case -5:
+					enter();
+					return true;
+				case ' ':
+					space();
+					return true;
+				default:
+					if(key >= 32) {
 						if(canvas != null) {
 							String keyName = canvas.getKeyName(key);
 							if(keyName.length() == 1) {
@@ -1184,15 +1195,20 @@ public final class Keyboard implements KeyboardConstants {
 						} else {
 							type((char) key);
 						}
+						return true;
 					}
 				}
 			}
 		} else {
 			switch(key) {
+			case 127:
+				backspace(true);
+				return true;
 			case '\b':
-				backspace();
+				backspace(false);
 				return true;
 			case -5:
+			case 10:
 			case 13:
 			case 80:
 				enter();
@@ -1201,17 +1217,20 @@ public final class Keyboard implements KeyboardConstants {
 				space();
 				return true;
 			default:
-				if(canvas != null) {
-					String keyName = canvas.getKeyName(key);
-					if(keyName.length() == 1) {
-						type(keyName.charAt(0));
+				if(key >= 32) {
+					if(canvas != null) {
+						String keyName = canvas.getKeyName(key);
+						if(keyName.length() == 1) {
+							type(keyName.charAt(0));
+						}
+					} else {
+						type((char) key);
 					}
-				} else {
-					type((char) key);
 				}
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	void _repeatPress(int x, int y) {
@@ -1235,7 +1254,7 @@ public final class Keyboard implements KeyboardConstants {
 						if(!repeated) shiftKey();
 						break;
 					case KEY_BACKSPACE:
-						backspace();
+						backspace(false);
 						break;
 					case KEY_LANG:
 						if(!repeated) langKey();
@@ -1358,7 +1377,7 @@ public final class Keyboard implements KeyboardConstants {
 		type(' ');
 	}
 	
-	private void backspace() {
+	private void backspace(boolean forward) {
 		if(keyBuffer != 0) {
 			keyBuffer = 0;
 			_flushKeyBuffer();
@@ -1378,7 +1397,11 @@ public final class Keyboard implements KeyboardConstants {
 				textUpdated();
 				return;
 			}
-			if(caretPosition == text.length()) {
+			if(forward) {
+				if(caretPosition < text.length()) {
+					text = text.substring(0, caretPosition) + text.substring(caretPosition + 1);
+				}
+			} else if(caretPosition == text.length()) {
 				if(multiLine) {
 					char c = text.charAt(text.length() - 1);
 					if(c == '\n') {
