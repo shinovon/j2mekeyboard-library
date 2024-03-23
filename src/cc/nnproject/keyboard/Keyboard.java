@@ -1179,7 +1179,6 @@ public final class Keyboard implements KeyboardConstants {
 					return true;
 				case 13:
 				case 80:
-				case -5:
 					enter();
 					return true;
 				case ' ':
@@ -1205,9 +1204,13 @@ public final class Keyboard implements KeyboardConstants {
 				backspace(true);
 				return true;
 			case '\b':
+			case -8:
 				backspace(false);
 				return true;
 			case -5:
+			case -6:
+			case -7:
+				return false;
 			case 10:
 			case 13:
 			case 80:
