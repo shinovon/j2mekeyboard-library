@@ -154,13 +154,13 @@ public final class Keyboard implements KeyboardConstants {
 		
 		// Physical keyboard checks
 		String sysKeyboardType = System.getProperty("com.nokia.keyboard.type");
+		String platform = System.getProperty("microedition.platform");
 		if(sysKeyboardType == null) {
 			physicalType = PHYSICAL_KEYBOARD_PHONE_KEYPAD;
 			// Symbian 9.x check
 			if(System.getProperty("com.symbian.midp.serversocket.support") != null ||
 					System.getProperty("com.symbian.default.to.suite.icon") != null ||
-					(System.getProperty("microedition.platform") != null &&
-					System.getProperty("microedition.platform").indexOf("version=3.2") != -1)) {
+					(platform != null && platform.indexOf("version=3.2") != -1)) {
 				if(screenWidth > screenHeight) {
 					physicalType = PHYSICAL_KEYBOARD_QWERTY;
 				} else {
@@ -448,6 +448,10 @@ public final class Keyboard implements KeyboardConstants {
 		this.physicalType = physicalKeyboardType;
 	}
 	
+	public int getPhysicalKeyboardType() {
+		return physicalType;
+	}
+	
 	/**
 	 * Set virtual keyboard visibility
 	 * Defaults to Canvas.hasPointerEvents()
@@ -706,12 +710,13 @@ public final class Keyboard implements KeyboardConstants {
 	 */
 	public boolean keyPressed(int key) {
 		if(!visible) return false;
+		boolean grabbed;
 		switch(key) {
 		case -3:
 		case -4:
-			if(keyPressed = moveCaret(key == -3 ? -1 : 1))
+			if(grabbed = moveCaret(key == -3 ? -1 : 1))
 				_keyPressed(key);
-			return true;
+			return grabbed;
 		case -1:
 		case -2:
 		case -6:
@@ -719,9 +724,9 @@ public final class Keyboard implements KeyboardConstants {
 		case -7:
 		case -5:
 		default:
-			if(keyPressed = handleKey(key, false))
+			if(grabbed = handleKey(key, false))
 				_keyPressed(key);
-			return true;
+			return grabbed;
 		}
 	}
 	
@@ -734,7 +739,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(keyPressed) {
 			synchronized(this) {
 				if(key == -3 || key == -4) {
-					if(keyPressed = moveCaret(key == -3 ? -1 : 1))
+					if(moveCaret(key == -3 ? -1 : 1))
 						_keyPressed(key);
 					return true;
 				}
@@ -1009,6 +1014,7 @@ public final class Keyboard implements KeyboardConstants {
 	}
 	
 	private synchronized void _keyPressed(int key) {
+		keyPressed = true;
 		lastKey = key;
 		kt = System.currentTimeMillis();
 		if(keysHeldCount == keysHeld.length) {
@@ -1198,19 +1204,19 @@ public final class Keyboard implements KeyboardConstants {
 					}
 				}
 			}
-		} else {
+		} else { // qwerty
 			switch(key) {
-			case 127:
-				backspace(true);
-				return true;
-			case '\b':
-			case -8:
-				backspace(false);
-				return true;
 			case -5:
 			case -6:
 			case -7:
 				return false;
+			case '\b':
+			case -8:
+				backspace(false);
+				return true;
+			case 127: // delete key
+				backspace(true);
+				return true;
 			case 10:
 			case 13:
 			case 80:
@@ -1229,8 +1235,8 @@ public final class Keyboard implements KeyboardConstants {
 					} else {
 						type((char) key);
 					}
+					return true;
 				}
-				return true;
 			}
 		}
 		return false;
