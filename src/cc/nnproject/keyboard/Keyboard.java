@@ -137,9 +137,12 @@ public final class Keyboard implements KeyboardConstants {
 	int endRow;
 	int endCol;
 	private int startCol;
+	private String[] textArray;
+	private boolean updateText;
+	private int prevTextBoxWidth;
 
 	private String[] abc;
-	
+
 	private Keyboard(Canvas canvas, int keyboardType, boolean multiLine, int screenWidth, int screenHeight, String layoutPackRes) {
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
@@ -273,6 +276,7 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		caretPosition = s.length();
 		text = s;
+		updateText = true;
 	}
 	
 	/**
@@ -285,10 +289,12 @@ public final class Keyboard implements KeyboardConstants {
 			text += s;
 			text = text.substring(0, size);
 			caretPosition = text.length();
+			updateText = true;
 			return;
 		}
 		caretPosition += s.length();
 		text += s;
+		updateText = true;
 	}
 	
 	/**
@@ -300,6 +306,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(size > 0 && text.length() >= size) return;
 		text = text.substring(0, index) + s + text.substring(index);
 		caretPosition += s.length();
+		updateText = true;
 	}
 	
 	/**
@@ -309,6 +316,7 @@ public final class Keyboard implements KeyboardConstants {
 	public void removeChar(int index) {
 		text = text.substring(0, index) + text.substring(index + 1);
 		caretPosition --;
+		updateText = true;
 	}
 	
 	/**
@@ -320,6 +328,7 @@ public final class Keyboard implements KeyboardConstants {
 		text = text.substring(0, start) + text.substring(end);
 		caretPosition -= end - start;
 		if(caretPosition < 0) caretPosition = 0;
+		updateText = true;
 	}
 	
 	/**
@@ -330,6 +339,7 @@ public final class Keyboard implements KeyboardConstants {
 		this.size = size;
 		if(text.length() > size) {
 			text = text.substring(0, size);
+			updateText = true;
 		}
 	}
 
@@ -339,6 +349,7 @@ public final class Keyboard implements KeyboardConstants {
 	public void clear() {
 		text = "";
 		caretPosition = 0;
+		updateText = true;
 	}
 	
 	/**
@@ -351,6 +362,7 @@ public final class Keyboard implements KeyboardConstants {
 		if(hasQwertyLayouts) {
 			currentLayout = langsIdx[lang = 0];
 		}
+		updateText = true;
 	}
 
 	
@@ -526,7 +538,7 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		int th = textFont.getHeight() + 2;
 		if(multiLine && !hint) {
-			String[] arr = getTextArray(s, textFont, width - 4);
+			String[] arr = getTextArray();
 			int yo = 0;
 			while(th * arr.length > height + yo) {
 				yo += th;
@@ -983,7 +995,7 @@ public final class Keyboard implements KeyboardConstants {
 			char c = text.charAt(caretPosition);
 			if(multiLine && c == '\n') {
 				caretRow--;
-				String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
+				String s = getTextArray()[caretRow];
 				caretCol = s.length();
 				caretX = textFont.stringWidth(s);
 			} else {
@@ -1415,7 +1427,7 @@ public final class Keyboard implements KeyboardConstants {
 					char c = text.charAt(text.length() - 1);
 					if(c == '\n') {
 						caretRow--;
-						String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
+						String s = getTextArray()[caretRow];
 						caretCol = s.length();
 						caretX = textFont.stringWidth(s);
 					} else {
@@ -1430,7 +1442,7 @@ public final class Keyboard implements KeyboardConstants {
 					char c = text.charAt(caretPosition - 1);
 					if(c == '\n') {
 						caretRow--;
-						String s = getTextArray(text, textFont, textBoxWidth-4)[caretRow];
+						String s = getTextArray()[caretRow];
 						caretCol = s.length();
 						caretX = textFont.stringWidth(s);
 					} else {
@@ -1457,7 +1469,7 @@ public final class Keyboard implements KeyboardConstants {
 	protected void _setCaretPosition(int x, int y) {
 		x -= 2;
 		if(multiLine) {
-			String[] arr = getTextArray(text, textFont, textBoxWidth - 4);
+			String[] arr = getTextArray();
 			int textHeight = textFont.getHeight() + 2;
 			int line = y / textHeight;
 			if(arr != null && line >= 0 && line < arr.length) {
@@ -1805,6 +1817,16 @@ public final class Keyboard implements KeyboardConstants {
 		}
 		keyboardHeight = keyStartY + keyEndY + (keyHeight + keyMarginY) * 4;
 		keyTextY = ((keyHeight - fontHeight) >> 1) + 1;
+	}
+	
+	private String[] getTextArray() {
+		if (!multiLine) return null;
+		if (textArray == null || updateText || textBoxWidth != prevTextBoxWidth) {
+			textArray = getTextArray(text, textFont, textBoxWidth-4);
+			updateText = false;
+			prevTextBoxWidth = textBoxWidth;
+		}
+		return textArray;
 	}
 	
 	// utils
