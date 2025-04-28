@@ -1,13 +1,36 @@
 {
 	"pack_name": "Default",
 	"languages": [
+		{"cs": "Čeština"},
+		{"da": "Dansk"},
+		{"de": "Deutsch"},
+		{"et": "Eesti"},
 		{"en": "English"},
 		{"es": "Español"},
+		{"eo": "Esperanto"},
+		{"fo": "Føroyskt"},
+		{"fr": "Français"},
+		{"hr": "Hrvatski"},
+		{"is": "Íslenska"},
+		{"it": "Italiano"},
+		{"lv": "Latviešu"},
+		{"lt": "Lietuvių"},
+		{"hu": "Magyar"},
+		{"no": "Norsk"},
+		{"pl": "Polski"},
+		{"ro": "Română"},
+		{"szl": "Ślōnski"},
+		{"sk": "Slovenčina"},
+		{"sl": "Slovenščina"},
+		{"fi": "Suomi"},
+		{"sv": "Svenska"},
+		{"el": "Ελληνικά"},
+		{"bg": "Български"},
 		{"ru": "Русский"}
 	],
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru", "es"],
+			"supported_languages": ["en", "ru", "es", "fr", "bg", "da", "el", "eo", "et", "fi", "fo", "is", "it", "lt", "lv", "no", "pl", "ro", "sk", "sv", "szl", "cs", "de", "hr", "hu", "sl"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
@@ -25,6 +48,150 @@
 					"res": "default_qwerty_es.json",
 					"type": "qwerty",
 					"lang": "es",
+					"abc": "abc"
+				},
+				{
+					"res": "default_azerty_fr.json",
+					"type": "azerty",
+					"lang": "fr",
+					"abc": "abc"
+				},
+				{
+					"res": "default_national_bg.json",
+					"type": "national",
+					"lang": "bg",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_bg.json",
+					"type": "qwerty",
+					"lang": "bg",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_da.json",
+					"type": "qwerty",
+					"lang": "da",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_el.json",
+					"type": "qwerty",
+					"lang": "el",
+					"abc": "αβγ"
+				},
+				{
+					"res": "default_qwerty_eo.json",
+					"type": "qwerty",
+					"lang": "eo",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_et.json",
+					"type": "qwerty",
+					"lang": "et",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_fi.json",
+					"type": "qwerty",
+					"lang": "fi",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_fo.json",
+					"type": "qwerty",
+					"lang": "fo",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_is.json",
+					"type": "qwerty",
+					"lang": "is",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_it.json",
+					"type": "qwerty",
+					"lang": "it",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_lt.json",
+					"type": "qwerty",
+					"lang": "lt",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_lv.json",
+					"type": "qwerty",
+					"lang": "lv",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_no.json",
+					"type": "qwerty",
+					"lang": "no",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_pl.json",
+					"type": "qwerty",
+					"lang": "pl",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_ro.json",
+					"type": "qwerty",
+					"lang": "ro",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_sk.json",
+					"type": "qwerty",
+					"lang": "sk",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_sv.json",
+					"type": "qwerty",
+					"lang": "sv",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_szl.json",
+					"type": "qwerty",
+					"lang": "szl",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_cs.json",
+					"type": "qwertz",
+					"lang": "cs",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_de.json",
+					"type": "qwertz",
+					"lang": "de",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_hr.json",
+					"type": "qwertz",
+					"lang": "hr",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_hu.json",
+					"type": "qwertz",
+					"lang": "hu",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_sl.json",
+					"type": "qwertz",
+					"lang": "sl",
 					"abc": "abc"
 				},
 				{
