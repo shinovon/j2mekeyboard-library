@@ -1,3 +1,24 @@
+/*
+Copyright (c) 2022-2025 Arman Jussupgaliyev
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 package cc.nnproject.keyboard;
 
 import java.io.ByteArrayOutputStream;
@@ -350,6 +371,7 @@ public final class Keyboard implements KeyboardConstants {
 		text = "";
 		caretPosition = 0;
 		updateText = true;
+		selectionStart = selectionEnd = -1;
 	}
 	
 	/**
@@ -363,6 +385,7 @@ public final class Keyboard implements KeyboardConstants {
 			currentLayout = langsIdx[lang = 0];
 		}
 		updateText = true;
+		selectionStart = selectionEnd = -1;
 	}
 
 	
@@ -526,7 +549,7 @@ public final class Keyboard implements KeyboardConstants {
 		this.textBoxWidth = width;
 		this.textBoxHeight = height;
 		g.setFont(textFont);
-		int textY = multiLine ? y : y + (height - textFont.getHeight()) >> 1;
+		int textY = multiLine ? y : y + ((height - textFont.getHeight())) >> 1;
 		String s = "";
 		boolean hint = text.length() == 0;
 		if(!hint) {
@@ -551,7 +574,7 @@ public final class Keyboard implements KeyboardConstants {
 				ty += th;
 			}
 			int cx = x + 2 + caretX;
-			int cy = textY + (th * caretRow);
+			int cy = textY - yo + (th * caretRow);
 			if(selectionEnd != -1) {
 				int strow = startRow;
 				int endrow = endRow;
@@ -1354,6 +1377,7 @@ public final class Keyboard implements KeyboardConstants {
 
 	private void textUpdated() {
 		if(caretPosition > text.length()) caretPosition = text.length();
+		updateText = true;
 		if(listener != null) listener.onKeyboardTextUpdated();
 		_requestRepaint();
 	}
@@ -1700,7 +1724,7 @@ public final class Keyboard implements KeyboardConstants {
 				String type = j.getNullableString("type");
 				layoutTypes[i] = type == null ? 0 : type.equals("special") ? 1 : 0;
 				if(type != null) {
-					if(type.equals("qwerty")) {
+					if(type.equals("qwerty") || type.equals("qwertz") || type.equals("azerty") || type.equals("national")) {
 						String lng = j.getNullableString("lang");
 						if(lng != null) {
 							for(int k = 0; k < supportedLanguages.length; k++) {
@@ -1781,7 +1805,11 @@ public final class Keyboard implements KeyboardConstants {
 		positions = new int[layouts.length][4][];
 		offsets = new int[layouts.length][4];
 		for(int l = 0; l < layouts.length; l++) {
-			double dw = (double) screenWidth / (double)layouts[l][0].length;
+			int m = 0;
+			for (int j = 0; j < layouts[l].length; j++) {
+				if (layouts[l][j].length > layouts[l][m].length) m = j;
+			}
+			double dw = (double) screenWidth / (double)layouts[l][m].length;
 			int w = (int) dw;
 			int fz = layouts[l][2].length-2;
 			int fw = ((int) (screenWidth - dw * fz)) >> 1;
