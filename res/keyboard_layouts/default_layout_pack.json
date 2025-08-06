@@ -1,13 +1,53 @@
 {
 	"pack_name": "Default",
 	"languages": [
+		{"az": "Azərbaycan"},
+		{"ca": "Català"},
+		{"cs": "Čeština"},
+		{"da": "Dansk"},
+		{"de": "Deutsch"},
+		{"et": "Eesti"},
 		{"en": "English"},
 		{"es": "Español"},
-		{"ru": "Русский"}
+		{"eo": "Esperanto"},
+		{"fo": "Føroyskt"},
+		{"fr": "Français"},
+		{"hr": "Hrvatski"},
+		{"is": "Íslenska"},
+		{"it": "Italiano"},
+		{"lv": "Latviešu"},
+		{"lt": "Lietuvių"},
+		{"hu": "Magyar"},
+		{"mt": "Malti"},
+		{"no": "Norsk"},
+		{"uz": "Oʻzbek"},
+		{"pl": "Polski"},
+		{"pt": "Português"},
+		{"ro": "Română"},
+		{"sq": "Shqip"},
+		{"szl": "Ślōnski"},
+		{"sk": "Slovenčina"},
+		{"sl": "Slovenščina"},
+		{"fi": "Suomi"},
+		{"sv": "Svenska"},
+		{"tr": "Türkçe"},
+		{"tk": "Türkmen dili"},
+		{"el": "Ελληνικά"},
+		{"be": "Беларуская"},
+		{"bg": "Български"},
+		{"ky": "Кыргызча"},
+		{"kk": "Қазақ тілі"},
+		{"mk": "Македонски"},
+		{"mn": "Монгол"},
+		{"ru": "Русский"},
+		{"sr": "Српски"},
+		{"tg": "Тоҷикӣ"},
+		{"uk": "Українська"},
+		{"ka": "ქართული"}
 	],
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru", "es"],
+			"supported_languages": ["en", "ru", "es", "fr", "bg", "da", "el", "eo", "et", "fi", "fo", "is", "it", "lt", "lv", "no", "pl", "ro", "sk", "sv", "szl", "cs", "de", "hr", "hu", "sl", "tr", "az", "be", "ca", "ka", "kk", "ky", "mk", "mn", "mt", "pt", "sq", "tg", "tk", "uk", "uz", "sr"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
@@ -26,6 +66,258 @@
 					"type": "qwerty",
 					"lang": "es",
 					"abc": "abc"
+				},
+				{
+					"res": "default_azerty_fr.json",
+					"type": "azerty",
+					"lang": "fr",
+					"abc": "abc"
+				},
+				{
+					"res": "default_national_bg.json",
+					"type": "national",
+					"lang": "bg",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_bg.json",
+					"type": "qwerty",
+					"lang": "bg",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_da.json",
+					"type": "qwerty",
+					"lang": "da",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_el.json",
+					"type": "qwerty",
+					"lang": "el",
+					"abc": "αβγ"
+				},
+				{
+					"res": "default_qwerty_eo.json",
+					"type": "qwerty",
+					"lang": "eo",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_et.json",
+					"type": "qwerty",
+					"lang": "et",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_fi.json",
+					"type": "qwerty",
+					"lang": "fi",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_fo.json",
+					"type": "qwerty",
+					"lang": "fo",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_is.json",
+					"type": "qwerty",
+					"lang": "is",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_it.json",
+					"type": "qwerty",
+					"lang": "it",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_lt.json",
+					"type": "qwerty",
+					"lang": "lt",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_lv.json",
+					"type": "qwerty",
+					"lang": "lv",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_no.json",
+					"type": "qwerty",
+					"lang": "no",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_pl.json",
+					"type": "qwerty",
+					"lang": "pl",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_ro.json",
+					"type": "qwerty",
+					"lang": "ro",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_sk.json",
+					"type": "qwerty",
+					"lang": "sk",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_sv.json",
+					"type": "qwerty",
+					"lang": "sv",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_szl.json",
+					"type": "qwerty",
+					"lang": "szl",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_cs.json",
+					"type": "qwertz",
+					"lang": "cs",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_de.json",
+					"type": "qwertz",
+					"lang": "de",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_hr.json",
+					"type": "qwertz",
+					"lang": "hr",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_hu.json",
+					"type": "qwertz",
+					"lang": "hu",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_sl.json",
+					"type": "qwertz",
+					"lang": "sl",
+					"abc": "abc"
+				},
+				{
+					"res": "default_national_tr.json",
+					"type": "national",
+					"lang": "tr",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_az.json",
+					"type": "qwerty",
+					"lang": "az",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_be.json",
+					"type": "qwerty",
+					"lang": "be",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_ca.json",
+					"type": "qwerty",
+					"lang": "ca",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_ka.json",
+					"type": "qwerty",
+					"lang": "ka",
+					"abc": "აბგ"
+				},
+				{
+					"res": "default_qwerty_kk.json",
+					"type": "qwerty",
+					"lang": "kk",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_ky.json",
+					"type": "qwerty",
+					"lang": "ky",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_mk.json",
+					"type": "qwerty",
+					"lang": "mk",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_mn.json",
+					"type": "qwerty",
+					"lang": "mn",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_mt.json",
+					"type": "qwerty",
+					"lang": "mt",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_pt.json",
+					"type": "qwerty",
+					"lang": "pt",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_sq.json",
+					"type": "qwerty",
+					"lang": "sq",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_tg.json",
+					"type": "qwerty",
+					"lang": "tg",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_tk.json",
+					"type": "qwerty",
+					"lang": "tk",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_tr.json",
+					"type": "qwerty",
+					"lang": "tr",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwerty_uk.json",
+					"type": "qwerty",
+					"lang": "uk",
+					"abc": "абв"
+				},
+				{
+					"res": "default_qwerty_uz.json",
+					"type": "qwerty",
+					"lang": "uz",
+					"abc": "abc"
+				},
+				{
+					"res": "default_qwertz_sr.json",
+					"type": "qwertz",
+					"lang": "sr",
+					"abc": "абв"
 				},
 				{
 					"res": "default_spec_1.json",
