@@ -137,7 +137,8 @@
 					"res": "default_qwerty_lt.json",
 					"type": "qwerty",
 					"lang": "lt",
-					"abc": "abc"
+					"abc": "abc",
+					"rows": "5"
 				},
 				{
 					"res": "default_qwerty_lv.json",
@@ -215,13 +216,15 @@
 					"res": "default_national_tr.json",
 					"type": "national",
 					"lang": "tr",
-					"abc": "abc"
+					"abc": "abc",
+					"customshift": true
 				},
 				{
 					"res": "default_qwerty_az.json",
 					"type": "qwerty",
 					"lang": "az",
-					"abc": "abc"
+					"abc": "abc",
+					"customshift": true
 				},
 				{
 					"res": "default_qwerty_be.json",
@@ -239,13 +242,15 @@
 					"res": "default_qwerty_ka.json",
 					"type": "qwerty",
 					"lang": "ka",
-					"abc": "აბგ"
+					"abc": "აბგ",
+					"customshift": true
 				},
 				{
 					"res": "default_qwerty_kk.json",
 					"type": "qwerty",
 					"lang": "kk",
-					"abc": "абв"
+					"abc": "абв",
+					"rows": 5
 				},
 				{
 					"res": "default_qwerty_ky.json",
@@ -299,7 +304,8 @@
 					"res": "default_qwerty_tr.json",
 					"type": "qwerty",
 					"lang": "tr",
-					"abc": "abc"
+					"abc": "abc",
+					"customshift": true
 				},
 				{
 					"res": "default_qwerty_uk.json",
