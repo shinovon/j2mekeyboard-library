@@ -43,7 +43,9 @@
 		{"sr": "Српски"},
 		{"tg": "Тоҷикӣ"},
 		{"uk": "Українська"},
-		{"ka": "ქართული"}
+		{"ka": "ქართული"},
+		{"hy": "Հայերեն"},
+		{"he": "עברית"}
 	],
 	"keyboards": {
 		"default": {
@@ -326,6 +328,20 @@
 					"abc": "абв"
 				},
 				{
+					"res": "default_qwerty_hy.json",
+					"type": "qwerty",
+					"lang": "hy",
+					"abc": "աբգ",
+					"rows": 5
+				},
+				{
+					"res": "default_qwerty_he.json",
+					"type": "qwerty",
+					"lang": "he",
+					"abc": "אבג",
+				},
+				{
+					
 					"res": "default_spec_1.json",
 					"type": "special",
 					"tab": 1,
