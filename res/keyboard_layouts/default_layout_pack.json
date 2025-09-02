@@ -49,7 +49,7 @@
 	],
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru", "es", "fr", "bg", "da", "el", "eo", "et", "fi", "fo", "is", "it", "lt", "lv", "no", "pl", "ro", "sk", "sv", "szl", "cs", "de", "hr", "hu", "sl", "tr", "az", "be", "ca", "ka", "kk", "ky", "mk", "mn", "mt", "pt", "sq", "tg", "tk", "uk", "uz", "sr"],
+			"supported_languages": ["en", "ru", "es", "fr", "bg", "da", "el", "eo", "et", "fi", "fo", "is", "it", "lt", "lv", "no", "pl", "ro", "sk", "sv", "szl", "cs", "de", "hr", "hu", "sl", "tr", "az", "be", "ca", "ka", "kk", "ky", "mk", "mn", "mt", "pt", "sq", "tg", "tk", "uk", "uz", "sr", "hy", "he"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
