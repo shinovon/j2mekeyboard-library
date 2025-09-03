@@ -338,10 +338,9 @@
 					"res": "default_qwerty_he.json",
 					"type": "qwerty",
 					"lang": "he",
-					"abc": "אבג",
+					"abc": "אבג"
 				},
 				{
-					
 					"res": "default_spec_1.json",
 					"type": "special",
 					"tab": 1,
