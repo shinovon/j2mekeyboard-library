@@ -43,11 +43,13 @@
 		{"sr": "Српски"},
 		{"tg": "Тоҷикӣ"},
 		{"uk": "Українська"},
-		{"ka": "ქართული"}
+		{"ka": "ქართული"},
+		{"hy": "Հայերեն"},
+		{"he": "עברית"}
 	],
 	"keyboards": {
 		"default": {
-			"supported_languages": ["en", "ru", "es", "fr", "bg", "da", "el", "eo", "et", "fi", "fo", "is", "it", "lt", "lv", "no", "pl", "ro", "sk", "sv", "szl", "cs", "de", "hr", "hu", "sl", "tr", "az", "be", "ca", "ka", "kk", "ky", "mk", "mn", "mt", "pt", "sq", "tg", "tk", "uk", "uz", "sr"],
+			"supported_languages": ["en", "ru", "es", "fr", "bg", "da", "el", "eo", "et", "fi", "fo", "is", "it", "lt", "lv", "no", "pl", "ro", "sk", "sv", "szl", "cs", "de", "hr", "hu", "sl", "tr", "az", "be", "ca", "ka", "kk", "ky", "mk", "mn", "mt", "pt", "sq", "tg", "tk", "uk", "uz", "sr", "hy", "he"],
 			"layouts": [
 				{
 					"res": "default_qwerty_en.json",
@@ -326,6 +328,20 @@
 					"abc": "абв"
 				},
 				{
+					"res": "default_qwerty_hy.json",
+					"type": "qwerty",
+					"lang": "hy",
+					"abc": "աբգ",
+					"rows": 5
+				},
+				{
+					"res": "default_qwerty_he.json",
+					"type": "qwerty",
+					"lang": "he",
+					"abc": "אבג",
+				},
+				{
+					
 					"res": "default_spec_1.json",
 					"type": "special",
 					"tab": 1,
