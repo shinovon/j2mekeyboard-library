@@ -604,10 +604,10 @@ public final class Keyboard implements KeyboardConstants {
 			g.setColor(textHintColor);
 			s = textHint;
 		}
-		int th = MP.getFontHeight(textFont) + 2;
+		int th = textFont.getHeight() + 2;
 		if (multiLine && !hint) {
 			Vector arr = getRenderText();
-			int yo = -(height - MP.getFontHeight(textFont)) >> 1;
+			int yo = -(height - textFont.getHeight()) >> 1;
 			int length = arr.size();
 			while (th * length > height + yo) {
 				yo += th;
@@ -663,7 +663,7 @@ public final class Keyboard implements KeyboardConstants {
 			}
 			drawCaret(g, cx, cy);
 		} else {
-			textY += (height - MP.getFontHeight(textFont)) >> 1;
+			textY += (height - textFont.getHeight()) >> 1;
 			int l = text.length();
 			int start = 0;
 			if (!hint) {
@@ -1605,7 +1605,7 @@ public final class Keyboard implements KeyboardConstants {
 		x -= 2;
 		if (multiLine) {
 			Vector arr = getRenderText();
-			int textHeight = MP.getFontHeight(textFont) + 2;
+			int textHeight = textFont.getHeight() + 2;
 			int line = y / textHeight;
 			int length = arr.size();
 			if (arr != null && line >= 0 && line < length) {

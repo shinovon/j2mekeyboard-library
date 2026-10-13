@@ -34,5 +34,7 @@ public interface KeyboardListener {
 	public void onKeyboardRepaintRequested();
 
 	public void onTextBoxRepaintRequested();
+	
+	public boolean requestLanguageChange();
 
 }
